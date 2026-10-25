@@ -1,3 +1,4 @@
+import {withProjectTimeline} from './project-timeline.ts';
 import {projectCompanyIds,projectRoles,companyContacts} from './projects.ts';
 import defaults from './default-records.json' with {type:'json'};
 type RecordItem={id:string;kind:string;[key:string]:any};
@@ -64,7 +65,7 @@ export async function recordsRequest(path:string,options:RequestInit={}):Promise
      if(r.kind==='log'&&r.deal){const deal=all.get(r.deal);if(!deal||!projectCompanyIds(deal).includes(r.customer))throw Error('연락 이력에 연결된 프로젝트 거래처를 확인해 주세요.');}
     }
     const updated=new Date().toISOString();
-    const next=[...all.values()].map(r=>{const {legacyImport,...value}=r;return ids.has(r.id)?{...value,updated}:value;});
+    const next=[...all.values()].map(r=>{const {legacyImport,...value}=r;return ids.has(r.id)?{...(r.kind==='deal'?withProjectTimeline(rows.find(old=>old.id===r.id),value,updated):value),updated}:value;});
     localStorage.setItem(STORAGE_KEY,JSON.stringify(next));
     return Response.json({ok:true});
    }
