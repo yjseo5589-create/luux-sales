@@ -1,9 +1,26 @@
+import defaults from './default-records.json' with {type:'json'};
 type RecordItem={id:string;kind:string;[key:string]:any};
 export const STORAGE_KEY='luux-sales-records-v1';
+export const SEED_KEY='luux-sales-default-contacts-v1';
 function read():RecordItem[]{
- const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return [];
- const rows=JSON.parse(raw);if(!Array.isArray(rows))throw Error('저장된 데이터를 확인해 주세요.');return rows;
+ const raw=localStorage.getItem(STORAGE_KEY);
+ const rows:RecordItem[]=raw?JSON.parse(raw):[];
+ if(!Array.isArray(rows))throw Error('저장된 데이터를 확인해 주세요.');
+ if(localStorage.getItem(SEED_KEY)!=='1'){
+  const all=new Map<string,RecordItem>((defaults as RecordItem[]).map(r=>[r.id,r]));
+  for(const r of rows){
+   const base=all.get(r.id);
+   if(base?.contacts&&r.contacts){const people=new Map(base.contacts.map((p:any)=>[p.id,p]));for(const p of r.contacts)people.set(p.id,p);all.set(r.id,{...base,...r,contacts:[...people.values()]});}
+   else all.set(r.id,r);
+  }
+  const seeded=[...all.values()];
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(seeded));
+  localStorage.setItem(SEED_KEY,'1');
+  return seeded;
+ }
+ return rows;
 }
+
 export async function recordsRequest(path:string,options:RequestInit={}):Promise<Response>{
  const execute=async()=>{
   try{

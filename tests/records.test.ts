@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
-import {recordsRequest,STORAGE_KEY} from '../src/records.ts';
+import {recordsRequest,STORAGE_KEY,SEED_KEY} from '../src/records.ts';
 const data=new Map<string,string>();
 Object.defineProperty(globalThis,'localStorage',{value:{getItem:(k:string)=>data.get(k)??null,setItem:(k:string,v:string)=>data.set(k,v)}});
+const first=await (await recordsRequest('/api/records')).json();
+assert.equal(first.length,5);
+assert.equal(first.reduce((n:number,r:any)=>n+r.contacts.length,0),17);
+assert.equal(data.get(SEED_KEY),'1');
+data.clear();data.set(SEED_KEY,'1');
 const request=(items:unknown)=>recordsRequest('/api/records',{method:'POST',body:JSON.stringify({items})});
 const person={id:'p1',contact:'담당자',position:'',department:'',phone:'',officePhone:'',email:''};
 const company={id:'c1',kind:'customer',name:'검증회사',contacts:[person]};

@@ -1,0 +1,195 @@
+[
+  {
+    "id": "0c645200-cf02-4649-bc63-0881e8e9823f",
+    "kind": "customer",
+    "name": "부시기획",
+    "type": "렙사",
+    "contacts": [
+      {
+        "id": "0c645200-cf02-4649-bc63-0881e8e9823f-contact",
+        "contact": "신다슬",
+        "position": "차장 / 팀장",
+        "department": "미디어 2팀",
+        "phone": "010-8225-2934",
+        "officePhone": "02-2268-7738",
+        "email": "dsshin@bushad.com"
+      },
+      {
+        "id": "b71cdb9f-e907-467f-97dc-fcc391d183b3",
+        "contact": "김동현",
+        "position": "차장",
+        "department": "미디어 2팀",
+        "phone": "010-5430-6554",
+        "officePhone": "070-7836-0107",
+        "email": "dhkim@bushad.com"
+      },
+      {
+        "id": "0b7f4ff0-8bdc-4d4a-bdbe-081292bf4d5e",
+        "contact": "나혜주",
+        "position": "대리",
+        "department": "미디어 2팀",
+        "phone": "010-5201-4881",
+        "officePhone": "02-2268-7738",
+        "email": "hjna@bushad.com"
+      },
+      {
+        "id": "f16dc9fa-0ce2-48db-ad9e-d2835dd0910e",
+        "contact": "조수현",
+        "position": "대리",
+        "department": "미디어 2팀",
+        "phone": "010-4732-1887",
+        "officePhone": "070-8740-0641",
+        "email": "shcho@bushad.com"
+      },
+      {
+        "id": "ed4ed754-14d5-477b-8d35-cace0c20e84c",
+        "contact": "장수련",
+        "position": "사원",
+        "department": "미디어 2팀",
+        "phone": "010-8614-3886",
+        "officePhone": "02-2268-7738",
+        "email": "srjang@bushad.com"
+      }
+    ]
+  },
+  {
+    "id": "1baf2301-a6d8-45e3-9169-2545457926d7",
+    "kind": "customer",
+    "name": "OHBROWN",
+    "type": "렙사",
+    "contacts": [
+      {
+        "id": "1baf2301-a6d8-45e3-9169-2545457926d7-contact",
+        "contact": "방그레",
+        "position": "부장",
+        "department": "OOH-MEDIA Team",
+        "phone": "010-4818-0160",
+        "officePhone": "02-557-6565",
+        "email": "gr.bang@ohbrown.co.kr"
+      },
+      {
+        "id": "d692de2c-1498-4724-98d2-cd8b090d90dd",
+        "contact": "박온유",
+        "position": "차장",
+        "department": "OOH-MEDIA Team",
+        "phone": "010-7129-8369",
+        "officePhone": "02-557-6565",
+        "email": "oy.park@ohbrown.co.kr"
+      },
+      {
+        "id": "435c7990-b76b-4609-8fcb-5a2c25ccd031",
+        "contact": "유민재",
+        "position": "사원",
+        "department": "OOH-MEDIA Team",
+        "phone": "010-9267-7245",
+        "officePhone": "02-557-6565",
+        "email": "mj.yu@ohbrown.co.kr"
+      },
+      {
+        "id": "ad45597a-0117-4df9-bfa9-6b71b3cf83a1",
+        "contact": "이정원",
+        "position": "사원",
+        "department": "OOH-MEDIA Team",
+        "phone": "010-3235-8758",
+        "officePhone": "02-557-6565",
+        "email": "lee.jw@ohbrown.co.kr"
+      },
+      {
+        "id": "f66c6d39-be5d-4fce-9ad6-63875b06d827",
+        "contact": "이주현",
+        "position": "사원",
+        "department": "OOH-MEDIA Team",
+        "phone": "010-7262-6675",
+        "officePhone": "02-557-6565",
+        "email": "juhyun.lee@ohbrown.co.kr"
+      },
+      {
+        "id": "75e494fe-c2e2-4eaf-bc17-d1a818b6d5f2",
+        "contact": "장민서",
+        "position": "사원",
+        "department": "OOH MEDIA Team",
+        "phone": "010-4187-2280",
+        "officePhone": "02-557-6565",
+        "email": "ms.jang@ohbrown.co.kr"
+      }
+    ]
+  },
+  {
+    "id": "51cdb975-dca6-4284-80b5-201e2196c8bf",
+    "kind": "customer",
+    "name": "이노션",
+    "type": "대행사",
+    "contacts": [
+      {
+        "id": "51cdb975-dca6-4284-80b5-201e2196c8bf-contact",
+        "contact": "차은희",
+        "position": "시니어매니저",
+        "department": "MX비즈니스팀",
+        "phone": "010-2645-1964",
+        "officePhone": "02-2016-3970",
+        "email": "ehcha@innocean.com"
+      }
+    ]
+  },
+  {
+    "id": "54687bf6-bb28-4996-be9d-69b21ea309f6",
+    "kind": "customer",
+    "name": "덴츠코리아",
+    "type": "대행사",
+    "contacts": [
+      {
+        "id": "54687bf6-bb28-4996-be9d-69b21ea309f6-contact",
+        "contact": "최준혁",
+        "position": "수석국장",
+        "department": "",
+        "phone": "010-8872-8837",
+        "officePhone": "02-6005-0442",
+        "email": "Junhyuk.Choi@dentsu.com"
+      },
+      {
+        "id": "40060d1d-b596-4425-90a0-12addbaf0ae8",
+        "contact": "하윤정",
+        "position": "수석국장",
+        "department": "",
+        "phone": "010-5252-6175",
+        "officePhone": "02-6005-0436",
+        "email": "YunJung.Ha@dentsu.com"
+      },
+      {
+        "id": "a37728bb-e2e6-4736-acec-f82eb4f869b2",
+        "contact": "이동욱",
+        "position": "차장",
+        "department": "",
+        "phone": "010-4441-5644",
+        "officePhone": "02-6005-0481",
+        "email": "donguk.lee@dentsu.com"
+      },
+      {
+        "id": "b34979fe-0f1d-4565-9de9-1f02e5cf4ae8",
+        "contact": "이누리",
+        "position": "대리",
+        "department": "",
+        "phone": "010-7272-7791",
+        "officePhone": "02-6005-0827",
+        "email": "Nuri.Lee@dentsu.com"
+      }
+    ]
+  },
+  {
+    "id": "7d635621-b7aa-419c-b9c8-a7dc0afc7439",
+    "kind": "customer",
+    "name": "ORICOM",
+    "type": "대행사",
+    "contacts": [
+      {
+        "id": "7d635621-b7aa-419c-b9c8-a7dc0afc7439-contact",
+        "contact": "안계원",
+        "position": "수석",
+        "department": "IMC Media HQ",
+        "phone": "010-4890-3464",
+        "officePhone": "02-510-4084",
+        "email": "kyewon.an@oricom.com"
+      }
+    ]
+  }
+]
