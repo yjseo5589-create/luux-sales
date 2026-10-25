@@ -33,3 +33,6 @@ input,select,textarea{width:100%;min-width:0;margin:0;border:1px solid #ccc;bord
 @media(max-width:640px){:root{--panel-padding:20px}.drawer{width:100%}.modal-overlay{padding:var(--s4)}.modal{max-height:calc(100dvh - 32px)}.modal-head{padding:20px 20px var(--s4)}.modal-fields{padding:0 20px 20px}.modal-footer{padding:var(--s4) 20px}.modal input,.modal select,.modal textarea{font-size:16px}.modal textarea{min-height:120px}.detail-header h2,.modal-head h2{font-size:20px}.page-heading .btn{padding:0 var(--s3);font-size:var(--caption)}.company-accordion>summary{font-size:var(--text)}.person-summary{padding:var(--s3) 0}.person-summary dl>div{grid-template-columns:64px minmax(0,1fr)}}
 @media(max-width:360px){.tabs{gap:var(--s4)}.page-heading h1{font-size:24px}.sidebar{gap:var(--s3) var(--s4)}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* Deletion is a quiet utility action until intentional hover/focus. */
+.delete-action{color:var(--muted);margin-left:-6px}.delete-action:hover,.delete-action:focus-visible{color:var(--danger);background:#fff5f4}.delete-action:disabled{background:none;color:var(--muted)}
