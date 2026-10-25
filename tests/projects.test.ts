@@ -63,3 +63,8 @@ assert.equal(JSON.parse(data.get(STORAGE_KEY)!).find((r:any)=>r.id===partnerProj
 assert.equal((await request([{...partnerProject,stage:'미수주',result:''}])).status,200);
 assert.equal(JSON.parse(data.get(STORAGE_KEY)!).find((r:any)=>r.id===partnerProject.id).stage,'미수주');
 console.log('PASS: single-stage outcomes, legacy success/failure mapping, won/lost persistence and filters');
+const searchable=[{id:'search-company',kind:'customer',name:'검색회사',contacts:[{id:'assigned',contact:'새 담당자',department:'미디어팀'},{id:'unassigned',contact:'관련없는 담당자'}]},{id:'search-project',kind:'deal',name:'검색 캠페인',agency:'search-company',agencyContactId:'assigned',stage:'제안 준비'}];
+assert.equal(filterProjects(searchable,'새 담당자')[0].id,'search-project');
+assert.equal(filterProjects(searchable,'미디어팀')[0].id,'search-project');
+assert.equal(filterProjects(searchable,'관련없는 담당자').length,0);
+console.log('PASS: project search follows the current assigned contact and department');

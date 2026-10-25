@@ -22,6 +22,6 @@ export function projectResult(r:ProjectRecord):string{
  return '';
 }
 export function filterProjects(rows:ProjectRecord[],query='',stage='진행 중'):ProjectRecord[]{
- const companies=new Map(rows.filter(r=>r.kind==='customer').map(r=>[r.id,r.name]));const needle=query.trim().toLocaleLowerCase('ko-KR');
- return rows.filter(r=>r.kind==='deal').filter(r=>stage==='전체'||(stage==='진행 중'?!['완료','미수주'].includes(projectStage(r))&&r.result!=='보류'&&r.stage!=='보류':projectStage(r)===stage)).filter(r=>!needle||[r.name,r.advertiserName,r.next,r.note,r.resultReason,...projectCompanyIds(r).map(id=>companies.get(id))].join(' ').toLocaleLowerCase('ko-KR').includes(needle)).sort((a,b)=>(b.updated||'').localeCompare(a.updated||'')||a.name.localeCompare(b.name,'ko'));
+ const companyRows=new Map(rows.filter(r=>r.kind==='customer').map(r=>[r.id,r]));const companies=new Map([...companyRows].map(([id,r])=>[id,r.name]));const needle=query.trim().toLocaleLowerCase('ko-KR');
+ return rows.filter(r=>r.kind==='deal').filter(r=>stage==='전체'||(stage==='진행 중'?!['완료','미수주'].includes(projectStage(r))&&r.result!=='보류'&&r.stage!=='보류':projectStage(r)===stage)).filter(r=>!needle||[r.name,r.advertiserName,r.next,r.note,r.resultReason,...projectCompanyIds(r).map(id=>companies.get(id)),...projectRoles.flatMap(role=>{const person=companyContacts(companyRows.get(r[role.key])).find((p:any)=>p.id===r[role.contactKey]);return person?[person.contact,person.department,person.position]:[]})].join(' ').toLocaleLowerCase('ko-KR').includes(needle)).sort((a,b)=>(b.updated||'').localeCompare(a.updated||'')||a.name.localeCompare(b.name,'ko'));
 }
