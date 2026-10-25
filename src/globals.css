@@ -34,5 +34,5 @@ input,select,textarea{width:100%;min-width:0;margin:0;border:1px solid #ccc;bord
 @media(max-width:360px){.tabs{gap:var(--s4)}.page-heading h1{font-size:24px}.sidebar{gap:var(--s3) var(--s4)}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
-/* Deletion is a quiet utility action until intentional hover/focus. */
-.delete-action{color:var(--muted);margin-left:-6px}.delete-action:hover,.delete-action:focus-visible{color:var(--danger);background:#fff5f4}.delete-action:disabled{background:none;color:var(--muted)}
+/* Deletion follows the same neutral utility treatment in every state. */
+.delete-action{color:var(--muted);margin-left:-6px}.delete-action:hover,.delete-action:focus-visible{color:var(--muted);background:var(--soft)}.delete-action:disabled{background:none;color:var(--muted)}
