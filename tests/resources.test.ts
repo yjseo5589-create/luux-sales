@@ -11,8 +11,8 @@ for(const r of workResources){
  assert.equal(url.search,'');
  assert.ok(allowed.has(url.pathname.split('/').pop()!));
 }
-assert.equal(filterResources('', '제안').length,2);
-assert.equal(filterResources('', '계약·집행').length,4);
+assert.equal(filterResources('', '제안').length,3);
+assert.equal(filterResources('', '계약·집행').length,3);
 assert.equal(filterResources('', '보고').length,2);
 assert.deepEqual(filterResources(' 편성 ').map(r=>r.id),['schedule']);
 assert.deepEqual(filterResources('청약').map(r=>r.id),['contracts']);
