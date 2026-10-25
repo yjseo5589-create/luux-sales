@@ -1,3 +1,4 @@
+import {projectCompanyIds,projectRoles,companyContacts} from './projects.ts';
 import defaults from './default-records.json' with {type:'json'};
 type RecordItem={id:string;kind:string;[key:string]:any};
 export const STORAGE_KEY='luux-sales-records-v1';
@@ -45,14 +46,22 @@ export async function recordsRequest(path:string,options:RequestInit={}):Promise
        const people=company.contacts?.length?company.contacts:[{id:company.id+'-contact'}];
        if(r.contactId&&!people.some((p:any)=>p.id===r.contactId))throw Error('해당 회사의 담당자를 선택해 주세요.');
        if(!r.contactId&&!rows.some(p=>p.id===r.id)&&!r.legacyImport)throw Error('담당자를 선택해 주세요.');
-       if(r.next&&!/^\d{4}-\d{2}-\d{2}$/.test(r.due||''))throw Error('다음 행동의 예정일을 선택해 주세요.');
+       if(r.next&&!/^\d{4}-\d{2}-\d{2}$/.test(r.due||''))throw Error('후속 업무의 기한을 선택해 주세요.');
       }
-      if(r.kind==='deal'&&r.start&&r.end&&r.end<r.start)throw Error('종료일을 확인해 주세요.');
-      if(r.deal&&(all.get(r.deal)?.kind!=='deal'||all.get(r.deal)?.customer!==r.customer))throw Error('연결된 프로젝트를 확인해 주세요.');
+      if(r.kind==='deal'){
+       if(r.start&&r.end&&r.end<r.start)throw Error('종료일을 확인해 주세요.');
+       for(const role of projectRoles){if(!r[role.key]){if(r[role.contactKey])throw Error('담당자의 회사를 선택해 주세요.');continue;}const party=all.get(r[role.key]);if(party?.kind!=='customer')throw Error('프로젝트 거래처를 확인해 주세요.');if(r[role.contactKey]&&!companyContacts(party).some((p:any)=>p.id===r[role.contactKey]))throw Error('해당 회사의 담당자를 선택해 주세요.');}
+       for(const key of ['amount','quotedAmount','wonAmount'])if(r[key]!==undefined&&r[key]!==''&&(!Number.isFinite(Number(r[key]))||Number(r[key])<0))throw Error('금액을 확인해 주세요.');
+      }
+      if(r.deal&&(all.get(r.deal)?.kind!=='deal'||!projectCompanyIds(all.get(r.deal)!).includes(r.customer)))throw Error('연결된 프로젝트를 확인해 주세요.');
      }
      if(r.url&&!/^https?:\/\//i.test(r.url))throw Error('자료 링크를 확인해 주세요.');
     }
     for(const r of all.values())if(r.kind==='log'&&r.contactId){const company=all.get(r.customer);const people=company?.contacts?.length?company.contacts:[{id:company?.id+'-contact'}];if(!people.some((p:any)=>p.id===r.contactId))throw Error('연락 이력이 있는 담당자는 제거할 수 없습니다.');}
+    for(const r of all.values()){
+     if(r.kind==='deal')for(const role of projectRoles)if(r[role.contactKey]&&!companyContacts(all.get(r[role.key])).some((p:any)=>p.id===r[role.contactKey]))throw Error('프로젝트에 연결된 담당자는 제거할 수 없습니다.');
+     if(r.kind==='log'&&r.deal){const deal=all.get(r.deal);if(!deal||!projectCompanyIds(deal).includes(r.customer))throw Error('연락 이력에 연결된 프로젝트 거래처를 확인해 주세요.');}
+    }
     const updated=new Date().toISOString();
     const next=[...all.values()].map(r=>{const {legacyImport,...value}=r;return ids.has(r.id)?{...value,updated}:value;});
     localStorage.setItem(STORAGE_KEY,JSON.stringify(next));
@@ -60,7 +69,7 @@ export async function recordsRequest(path:string,options:RequestInit={}):Promise
    }
    if(options.method==='DELETE'){
     const id=new URL(path,'https://local.invalid').searchParams.get('id');
-    if(rows.some(r=>(r.kind==='log'||r.kind==='deal')&&(r.customer===id||r.deal===id)))throw Error('연결된 연락 이력을 먼저 정리해 주세요.');
+    if(rows.some(r=>(r.kind==='log'||r.kind==='deal')&&(r.customer===id||r.agency===id||r.rep===id||r.deal===id)))throw Error('연결된 연락 이력을 먼저 정리해 주세요.');
     localStorage.setItem(STORAGE_KEY,JSON.stringify(rows.filter(r=>r.id!==id)));
     return Response.json({ok:true});
    }
