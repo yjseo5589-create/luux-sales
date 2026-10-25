@@ -41,14 +41,15 @@ export async function recordsRequest(path:string,options:RequestInit={}):Promise
       if(r.contacts&&(!Array.isArray(r.contacts)||!r.contacts.length||r.contacts.length>100))throw Error('담당자 정보를 확인해 주세요.');
       const pids=new Set();for(const p of r.contacts||[]){if(!p.id||pids.has(p.id))throw Error('담당자 정보가 중복되었습니다.');pids.add(p.id);}
      }else{
-      const company=all.get(r.customer);if(company?.kind!=='customer')throw Error('연결할 회사를 선택해 주세요.');
+      const company=all.get(r.customer);if((r.kind==='log'||r.customer)&&company?.kind!=='customer')throw Error('연결할 회사를 선택해 주세요.');
       if(r.kind==='log'){
-       const people=company.contacts?.length?company.contacts:[{id:company.id+'-contact'}];
+       const people=company!.contacts?.length?company!.contacts:[{id:company!.id+'-contact'}];
        if(r.contactId&&!people.some((p:any)=>p.id===r.contactId))throw Error('해당 회사의 담당자를 선택해 주세요.');
        if(!r.contactId&&!rows.some(p=>p.id===r.id)&&!r.legacyImport)throw Error('담당자를 선택해 주세요.');
        if(r.next&&!/^\d{4}-\d{2}-\d{2}$/.test(r.due||''))throw Error('후속 업무의 기한을 선택해 주세요.');
       }
       if(r.kind==='deal'){
+       if(!projectCompanyIds(r).length&&!r.advertiserName?.trim())throw Error('대행사·렙사 또는 광고주를 입력해 주세요.');
        if(r.start&&r.end&&r.end<r.start)throw Error('종료일을 확인해 주세요.');
        for(const role of projectRoles){if(!r[role.key]){if(r[role.contactKey])throw Error('담당자의 회사를 선택해 주세요.');continue;}const party=all.get(r[role.key]);if(party?.kind!=='customer')throw Error('프로젝트 거래처를 확인해 주세요.');if(r[role.contactKey]&&!companyContacts(party).some((p:any)=>p.id===r[role.contactKey]))throw Error('해당 회사의 담당자를 선택해 주세요.');}
        for(const key of ['amount','quotedAmount','wonAmount'])if(r[key]!==undefined&&r[key]!==''&&(!Number.isFinite(Number(r[key]))||Number(r[key])<0))throw Error('금액을 확인해 주세요.');
