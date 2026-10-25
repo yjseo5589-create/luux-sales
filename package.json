@@ -7,7 +7,9 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build && node scripts/stage-pages.mjs",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "node --experimental-strip-types tests/records.test.ts && node --experimental-strip-types tests/history.test.ts && node --experimental-strip-types tests/projects.test.ts && node --experimental-strip-types tests/dashboard.test.ts && node --experimental-strip-types tests/resources.test.ts"
+    "test": "node --experimental-strip-types tests/records.test.ts && node --experimental-strip-types tests/history.test.ts && node --experimental-strip-types tests/projects.test.ts && node --experimental-strip-types tests/dashboard.test.ts && node --experimental-strip-types tests/resources.test.ts && node tests/site-security.test.mjs",
+    "prebuild": "node scripts/site-key.mjs --check",
+    "set-password": "node scripts/site-key.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.31.0",
@@ -18,6 +20,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "6.0.2",
+    "staticrypt": "3.5.4",
     "typescript": "5.9.3",
     "vite": "8.0.13"
   }
