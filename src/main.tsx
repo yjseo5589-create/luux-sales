@@ -12,8 +12,10 @@ function App(){
    const raw=JSON.parse(await f.text());const items=Array.isArray(raw)?raw:raw.items;
    if(!Array.isArray(items)||!items.length)throw Error('가져올 기록이 없습니다.');
    const current=await recordsRequest('/api/records');if(!current.ok)throw Error('기존 데이터 확인에 실패했습니다.');
-   const existing=await current.json();if(existing.length)throw Error('이미 저장된 연락처가 있어 가져오기를 중단했습니다.');
-   const response=await recordsRequest('/api/records',{method:'POST',body:JSON.stringify({items:items.map((r:any)=>r.kind==='log'&&!r.contactId?{...r,legacyImport:true}:r)})});
+   const existing=await current.json();
+   // Preserve browser-only records and contacts while importing matching IDs once.
+   const merged=items.map((r:any)=>{const old=existing.find((x:any)=>x.id===r.id);if(r.kind!=='customer'||!old?.contacts||!r.contacts)return r;const people=new Map(old.contacts.map((p:any)=>[p.id,p]));for(const p of r.contacts)people.set(p.id,p);return {...r,contacts:[...people.values()]};});
+   const response=await recordsRequest('/api/records',{method:'POST',body:JSON.stringify({items:merged.map((r:any)=>r.kind==='log'&&!r.contactId?{...r,legacyImport:true}:r)})});
    const result=await response.json();if(!response.ok)throw Error(result.error);
    setMessage('연락처를 가져왔습니다.');
   }catch(e:any){setError(e.message);}finally{setBusy(false);if(file.current)file.current.value='';}
