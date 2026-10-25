@@ -4,6 +4,7 @@ import CRM from './crm';
 import {recordsRequest} from './records';
 import './globals.css';
 function App(){
+ const [importing,setImporting]=useState(location.hash==='#migration');
  const [busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState('');
  const file=useRef<HTMLInputElement>(null);
  async function importRecords(f:File){
@@ -24,7 +25,7 @@ function App(){
    setMessage(`회사 ${companies.length}개 · 담당자 ${companies.reduce((n:number,r:any)=>n+(r.contacts?.length||0),0)}명 · 연락 이력 ${merged.filter((r:any)=>r.kind==='log').length}건 이전 완료`);
   }catch(e:any){setError(e.message);}finally{setBusy(false);if(file.current)file.current.value='';}
  }
- if(location.hash!=='#migration')return <CRM/>;
- return <main className="auth-shell"><section className="auth-card"><img src={import.meta.env.BASE_URL+'landing-luux-logo.png'} alt="LUUX"/><h1>연락처 가져오기</h1><input className="migration-input" type="file" accept="application/json,.json" ref={file} onChange={e=>{if(e.target.files?.[0])void importRecords(e.target.files[0]);}}/><button className="btn primary" disabled={busy} onClick={()=>file.current?.click()}>{busy?'가져오는 중':'파일 선택'}</button>{message&&<p className="auth-message" role="status">{message}</p>}{error&&<p className="auth-message auth-error" role="alert">{error}</p>}<div className="auth-links"><a href={import.meta.env.BASE_URL}>거래처 관리</a></div></section></main>;
+ if(!importing)return <CRM onImport={()=>setImporting(true)}/>;
+ return <main className="auth-shell"><section className="auth-card"><img src={import.meta.env.BASE_URL+'landing-luux-logo.png'} alt="LUUX"/><h1>연락처 가져오기</h1><input className="migration-input" type="file" accept="application/json,.json" ref={file} onChange={e=>{if(e.target.files?.[0])void importRecords(e.target.files[0]);}}/><button className="btn primary" disabled={busy} onClick={()=>file.current?.click()}>{busy?'가져오는 중':'파일 선택'}</button>{message&&<p className="auth-message" role="status">{message}</p>}{error&&<p className="auth-message auth-error" role="alert">{error}</p>}<div className="auth-links"><button className="text-link" onClick={()=>setImporting(false)}>거래처 관리</button></div></section></main>;
 }
 createRoot(document.getElementById('root')!).render(<App/>);
