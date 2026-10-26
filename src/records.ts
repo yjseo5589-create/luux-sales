@@ -4,9 +4,10 @@ import defaults from './default-records.json' with {type:'json'};
 type RecordItem={id:string;kind:string;[key:string]:any};
 export const STORAGE_KEY='luux-sales-records-v1';
 export const SEED_KEY='luux-sales-default-contacts-v1';
+export const NASMEDIA_ADDITION_KEY='luux-sales-nasmedia-contacts-20261026';
 function read():RecordItem[]{
  const raw=localStorage.getItem(STORAGE_KEY);
- const rows:RecordItem[]=raw?JSON.parse(raw):[];
+ let rows:RecordItem[]=raw?JSON.parse(raw):[];
  if(!Array.isArray(rows))throw Error('저장된 데이터를 확인해 주세요.');
  if(localStorage.getItem(SEED_KEY)!=='1'){
   const all=new Map<string,RecordItem>((defaults as RecordItem[]).map(r=>[r.id,r]));
@@ -18,7 +19,26 @@ function read():RecordItem[]{
   const seeded=[...all.values()];
   localStorage.setItem(STORAGE_KEY,JSON.stringify(seeded));
   localStorage.setItem(SEED_KEY,'1');
-  return seeded;
+  rows=seeded;
+ }
+ // Add only this newly supplied company once; never reseed previously deleted contacts.
+ if(localStorage.getItem(NASMEDIA_ADDITION_KEY)!=='1'){
+  const incoming=(defaults as RecordItem[]).find(r=>r.id==='nasmedia-20261026')!;
+  const normalized=(s:string)=>s.replace(/\s/g,'').toLowerCase();
+  const aliases=['나스미디어','케이티나스미디어','ktnasmedia','nasmedia'];
+  const current=rows.find(r=>r.kind==='customer'&&(r.id===incoming.id||aliases.includes(normalized(r.name||''))||companyContacts(r).some((p:any)=>incoming.contacts.some((n:any)=>p.email&&p.email.toLowerCase()===n.email.toLowerCase()))));
+  if(!current)rows=[...rows,incoming];
+  else{
+   const people=[...companyContacts(current)];
+   for(const person of incoming.contacts){
+    const index=people.findIndex((p:any)=>p.id===person.id||(p.email&&p.email.toLowerCase()===person.email.toLowerCase())||(p.phone&&p.phone.replace(/\D/g,'')===person.phone.replace(/\D/g,'')));
+    if(index<0)people.push(person);
+    else people[index]={...person,...people[index]};
+   }
+   rows=rows.map(r=>r.id===current.id?{...r,contacts:people}:r);
+  }
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(rows));
+  localStorage.setItem(NASMEDIA_ADDITION_KEY,'1');
  }
  return rows;
 }

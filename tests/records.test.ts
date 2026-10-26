@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
-import {recordsRequest,STORAGE_KEY,SEED_KEY} from '../src/records.ts';
+import {recordsRequest,STORAGE_KEY,SEED_KEY,NASMEDIA_ADDITION_KEY} from '../src/records.ts';
 const data=new Map<string,string>();
 Object.defineProperty(globalThis,'localStorage',{value:{getItem:(k:string)=>data.get(k)??null,setItem:(k:string,v:string)=>data.set(k,v)}});
 const first=await (await recordsRequest('/api/records')).json();
-assert.equal(first.length,5);
-assert.equal(first.reduce((n:number,r:any)=>n+r.contacts.length,0),17);
+assert.equal(first.length,6);
+assert.equal(first.reduce((n:number,r:any)=>n+r.contacts.length,0),19);
 assert.equal(data.get(SEED_KEY),'1');
-data.clear();data.set(SEED_KEY,'1');
+data.clear();data.set(SEED_KEY,'1');data.set(NASMEDIA_ADDITION_KEY,'1');
 const request=(items:unknown)=>recordsRequest('/api/records',{method:'POST',body:JSON.stringify({items})});
 const person={id:'p1',contact:'담당자',position:'',department:'',phone:'',officePhone:'',email:''};
 const company={id:'c1',kind:'customer',name:'검증회사',contacts:[person]};
@@ -23,3 +23,28 @@ assert.equal((await recordsRequest('/api/records')).status,400);
 assert.equal((await request([company])).status,400);
 assert.equal(data.get(STORAGE_KEY),'broken');
 console.log('PASS: save/reload, per-contact history, reference protection, rename persistence, corrupt-data protection');
+
+// Existing installations receive only the new business-card contacts, once.
+data.clear();data.set(SEED_KEY,'1');
+const existingCompany={id:'existing-nasmedia',kind:'customer',name:'나스미디어',type:'렙사',contacts:[{id:'existing-park',contact:'박지숙',email:'sook@nasmedia.co.kr',phone:'010-0000-0000',position:'기존 수정값'}]};
+const existingLog={id:'existing-log',kind:'log',customer:existingCompany.id,contactId:'existing-park',note:'보존할 이력'};
+data.set(STORAGE_KEY,JSON.stringify([existingCompany,existingLog]));
+let migrated=await (await recordsRequest('/api/records')).json();
+assert.equal(migrated.length,2);
+let nasmedia=migrated.find((r:any)=>r.id===existingCompany.id);
+assert.equal(nasmedia.contacts.length,2);
+assert.equal(nasmedia.contacts[0].id,'existing-park');
+assert.equal(nasmedia.contacts[0].position,'기존 수정값');
+assert.equal(nasmedia.contacts[1].contact,'김우빈');
+assert.equal(migrated.find((r:any)=>r.id==='existing-log').contactId,'existing-park');
+assert.equal(data.get(NASMEDIA_ADDITION_KEY),'1');
+assert.equal((await (await recordsRequest('/api/records')).json()).find((r:any)=>r.id===existingCompany.id).contacts.length,2);
+// Intentional deletion after this addition remains deleted on the next read.
+data.set(STORAGE_KEY,JSON.stringify([existingLog]));
+assert.equal((await (await recordsRequest('/api/records')).json()).length,1);
+// Previously removed unrelated seed companies are not brought back.
+data.clear();data.set(SEED_KEY,'1');data.set(STORAGE_KEY,'[]');
+migrated=await (await recordsRequest('/api/records')).json();
+assert.deepEqual(migrated.map((r:any)=>r.id),['nasmedia-20261026']);
+assert.equal(migrated[0].contacts.length,2);
+console.log('PASS: targeted contact addition, existing IDs/edits/history preserved, no duplicates or deleted-record restoration');

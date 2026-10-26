@@ -191,5 +191,31 @@
         "email": "kyewon.an@oricom.com"
       }
     ]
+  },
+  {
+    "id": "nasmedia-20261026",
+    "kind": "customer",
+    "name": "나스미디어",
+    "type": "렙사",
+    "contacts": [
+      {
+        "id": "nasmedia-park-jisook",
+        "contact": "박지숙",
+        "position": "팀장",
+        "department": "C레벨 컨설팅실 · 전략&컨설팅1팀",
+        "phone": "010-2260-9908",
+        "officePhone": "02-2188-8606",
+        "email": "sook@nasmedia.co.kr"
+      },
+      {
+        "id": "nasmedia-kim-woobin",
+        "contact": "김우빈",
+        "position": "선임",
+        "department": "광고3본부 · C레벨 컨설팅실 · 전략&컨설팅1팀",
+        "phone": "010-6588-7505",
+        "officePhone": "02-2188-7391",
+        "email": "ok10909@nasmedia.co.kr"
+      }
+    ]
   }
 ]
