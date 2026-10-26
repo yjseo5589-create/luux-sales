@@ -5,6 +5,8 @@
  --text:14px;--body-small:13px;--caption:12px;--control:40px;--utility:28px;
  --radius:2px;--panel-padding:24px;color-scheme:light;
 }
+/* Keep page width unchanged when lists expand or dialogs lock scrolling. */
+html{scrollbar-gutter:stable}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,'Apple SD Gothic Neo',sans-serif;font-size:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit}button{border:0;background:none;color:inherit;cursor:pointer}button,a{-webkit-tap-highlight-color:transparent}button:disabled{opacity:.4;cursor:not-allowed}a{color:inherit;text-decoration:none}h1,h2,h3,p,dl,dd{margin:0}svg{display:block;flex-shrink:0}
 button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid #555;outline-offset:3px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
