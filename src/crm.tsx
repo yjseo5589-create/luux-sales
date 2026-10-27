@@ -5,7 +5,9 @@ import {seoulDate,stageEvents} from './project-timeline';
 import ProjectForm from './project-form';
 import {filterHistory,historyContactName} from './history';
 import {filterProjects,projectStages,projectRoles,projectStage,projectCompanyIds,companyContacts,projectDisplayRoles,advertiserName} from './projects';
-import {recordsRequest} from './records';
+import {recordsRequest,STORAGE_KEY} from './records';
+import SyncButton from './sync-button';
+import {REMOTE_EVENT} from './sync-state';
 import {useEffect,useLayoutEffect,useState,useRef} from 'react';
 import {Search,ChevronDown,Plus,ArrowUpRight,Check,Phone,Mail,MessageSquare,Video,X,ChevronRight,CheckCircle2,Pencil,Trash2,Link as LinkIcon,LoaderCircle} from 'lucide-react';
 type Contact={id:string;contact:string;position:string;department:string;phone:string;officePhone:string;email:string};
@@ -40,6 +42,8 @@ export default function CRM(){
 
  async function reload(){const r=await recordsRequest('/api/records');if(r.status===401){setAuth(true);setLoading(false);return}if(!r.ok)throw Error('데이터를 불러오지 못했습니다. 다시 시도해 주세요.');setRows(await r.json());setLoadFailed(false);setAuth(false);setError('');setLoading(false)}
  useEffect(()=>{reload().catch(e=>{setError(e.message);setLoadFailed(true);setLoading(false)});},[]);
+ // 다른 기기(클라우드)나 같은 브라우저의 다른 탭에서 바뀐 기록을 바로 다시 읽는다.
+ useEffect(()=>{const f=()=>{reload().catch(()=>{})};const g=(e:StorageEvent)=>{if(e.key===STORAGE_KEY)f()};window.addEventListener(REMOTE_EVENT,f);window.addEventListener('storage',g);return()=>{window.removeEventListener(REMOTE_EVENT,f);window.removeEventListener('storage',g)}},[]);
  useEffect(()=>{if(toast){const t=setTimeout(()=>setToast(''),3500);return()=>clearTimeout(t)}},[toast]);
  useEffect(()=>{const f=(e:KeyboardEvent)=>{const el=e.target as HTMLElement;if(e.key==='Escape'){if(modal)setModal(null);else {setSelected('');setProject('');}return;}if(modal||selected||project)return;if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();if(page==='dashboard'){go('deals');requestAnimationFrame(()=>search.current?.focus())}else search.current?.focus()}if(e.key==='n'&&page!=='resources'&&!e.metaKey&&!e.ctrlKey&&!e.altKey&&!el.isContentEditable&&!['INPUT','TEXTAREA','SELECT'].includes(el.tagName)){e.preventDefault();newRecord(page==='customers'?'customer':'deal')}};window.addEventListener('keydown',f);return()=>window.removeEventListener('keydown',f)},[rows,modal,selected,project,page]);
  useEffect(()=>{setError('')},[modal?.id]);
@@ -67,7 +71,7 @@ export default function CRM(){
  const editProject=(d:R)=>setModal({...d,stage:projectStage(d)});
  function addProjectLog(d:R){if(!projectCompanyIds(d).length){setToast('연락 기록을 남기려면 거래처를 먼저 연결해 주세요.');return;}const role=projectDisplayRoles.find(r=>d[r.key]&&d[r.contactKey])||projectDisplayRoles.find(r=>d[r.key])||projectRoles[0];const company=customers.find(c=>c.id===d[role.key]);const person=companyContacts(company).find((p:any)=>p.id===d[role.contactKey]);setModal({id:uid(),kind:'log',customer:d[role.key]||d.customer,contactId:person?.id||'',contact:person?.contact||'',deal:d.id,channel:'전화',date:today(),note:''});}
  const selectedCustomer=customers.find(r=>r.id===selected);
- return <div className="app"><aside className="sidebar"><button className="brand" onClick={()=>go('dashboard')} aria-label="LUUX 대시보드"><img src={import.meta.env.BASE_URL+'landing-luux-logo.png'} alt="Luux"/></button><nav>{[['dashboard','대시보드'],['customers','거래처 관리'],['deals','프로젝트 관리'],['resources','업무 자료실']].map(([id,label])=><button key={id} className={page===id?'nav active':'nav'} aria-current={page===id?'page':undefined} onClick={()=>go(id)}>{label}</button>)}</nav>{page!=='dashboard'&&<div className="searchbox"><Search size={18}/><input ref={search} aria-label="검색" placeholder={page==='resources'?'자료명, 용도 검색':page==='deals'?'프로젝트, 거래처, 담당자 검색':'회사명, 이름, 연락처 검색'} value={q} onChange={e=>setQ(e.target.value)}/>{q&&<button className="icon-btn" aria-label="검색 지우기" onClick={()=>{setQ('');search.current?.focus()}}><X size={14}/></button>}</div>}</aside><main>
+ return <div className="app"><aside className="sidebar"><button className="brand" onClick={()=>go('dashboard')} aria-label="LUUX 대시보드"><img src={import.meta.env.BASE_URL+'landing-luux-logo.png'} alt="Luux"/></button><nav>{[['dashboard','대시보드'],['customers','거래처 관리'],['deals','프로젝트 관리'],['resources','업무 자료실']].map(([id,label])=><button key={id} className={page===id?'nav active':'nav'} aria-current={page===id?'page':undefined} onClick={()=>go(id)}>{label}</button>)}</nav>{page!=='dashboard'&&<div className="searchbox"><Search size={18}/><input ref={search} aria-label="검색" placeholder={page==='resources'?'자료명, 용도 검색':page==='deals'?'프로젝트, 거래처, 담당자 검색':'회사명, 이름, 연락처 검색'} value={q} onChange={e=>setQ(e.target.value)}/>{q&&<button className="icon-btn" aria-label="검색 지우기" onClick={()=>{setQ('');search.current?.focus()}}><X size={14}/></button>}</div>}<SyncButton/></aside><main>
  <div className="content">{error&&!modal&&<div className="error" role="alert">{error}<button aria-label="오류 닫기" onClick={()=>setError('')} className="icon-btn"><X size={16}/></button></div>}
  <div className="page-heading"><h1>{page==='dashboard'?'대시보드':page==='resources'?'업무 자료실':page==='customers'?'거래처 관리':'프로젝트 관리'}</h1>{['customers','deals'].includes(page)&&<button className="btn primary" onClick={()=>newRecord(page==='customers'?'customer':'deal')}><Plus size={17}/>{page==='customers'?'거래처 등록':'프로젝트 등록'}</button>}</div>
  {loading?<div className="empty"><LoaderCircle className="spin"/>불러오는 중</div>:loadFailed?<div className="empty"><h3>데이터 확인 필요</h3><button className="compact-action" onClick={()=>{setLoading(true);reload().catch(e=>{setError(e.message);setLoading(false)})}}>다시 불러오기</button></div>:<>

@@ -5,6 +5,19 @@ type RecordItem={id:string;kind:string;[key:string]:any};
 export const STORAGE_KEY='luux-sales-records-v1';
 export const SEED_KEY='luux-sales-default-contacts-v1';
 export const NASMEDIA_ADDITION_KEY='luux-sales-nasmedia-contacts-20261026';
+type RecordsChange={upserts:RecordItem[];deletes:string[]};
+const changeListeners=new Set<(change:RecordsChange)=>void>();
+// Cloud sync subscribes here; every successful local save or delete is reported once.
+export function onRecordsChanged(listener:(change:RecordsChange)=>void){changeListeners.add(listener);return()=>{changeListeners.delete(listener)}}
+function notify(change:RecordsChange){for(const listener of changeListeners)listener(change)}
+export const readRecords=()=>read();
+export function isUntouchedDefault(row:RecordItem){const base=(defaults as RecordItem[]).find(r=>r.id===row.id);return !!base&&JSON.stringify(base)===JSON.stringify(row)}
+// Cloud copy replaces this browser's rows; mark seeding done so deleted defaults stay deleted.
+export function replaceRecords(rows:RecordItem[]){
+ localStorage.setItem(STORAGE_KEY,JSON.stringify(rows));
+ localStorage.setItem(SEED_KEY,'1');
+ localStorage.setItem(NASMEDIA_ADDITION_KEY,'1');
+}
 function read():RecordItem[]{
  const raw=localStorage.getItem(STORAGE_KEY);
  let rows:RecordItem[]=raw?JSON.parse(raw):[];
@@ -87,12 +100,14 @@ export async function recordsRequest(path:string,options:RequestInit={}):Promise
     const updated=new Date().toISOString();
     const next=[...all.values()].map(r=>{const {legacyImport,...value}=r;return ids.has(r.id)?{...(r.kind==='deal'?withProjectTimeline(rows.find(old=>old.id===r.id),value,updated):value),updated}:value;});
     localStorage.setItem(STORAGE_KEY,JSON.stringify(next));
+    notify({upserts:next.filter(r=>ids.has(r.id)),deletes:[]});
     return Response.json({ok:true});
    }
    if(options.method==='DELETE'){
     const id=new URL(path,'https://local.invalid').searchParams.get('id');
     if(rows.some(r=>(r.kind==='log'||r.kind==='deal')&&(r.customer===id||r.agency===id||r.rep===id||r.deal===id)))throw Error('연결된 연락 이력을 먼저 정리해 주세요.');
     localStorage.setItem(STORAGE_KEY,JSON.stringify(rows.filter(r=>r.id!==id)));
+    if(id)notify({upserts:[],deletes:[id]});
     return Response.json({ok:true});
    }
    return Response.json(rows);
