@@ -1,5 +1,6 @@
 // 명함 사진을 Gemini(Firebase AI Logic)로 읽어 거래처 등록창에 채울 값을 만든다. 저장은 사용자가 확인한 뒤에만 한다.
-import {getAI,getGenerativeModel,GoogleAIBackend,Schema} from 'firebase/ai';
+import {getAI,getGenerativeModel,GoogleAIBackend,Schema,ThinkingLevel} from 'firebase/ai';
+import {initializeAppCheck,ReCaptchaEnterpriseProvider} from 'firebase/app-check';
 import {app} from './firebase-app';
 
 export type CardResult={company:string;type:string;contact:string;position:string;department:string;phone:string;officePhone:string;email:string};
@@ -16,9 +17,13 @@ const schema=Schema.object({properties:{
  email:text('이메일')
 }});
 
+// AI Logic은 App Check 토큰이 있는 요청만 받는다. reCAPTCHA는 명함 등록을 처음 쓸 때만 불러온다.
+const RECAPTCHA_SITE_KEY='6LeNNwQuAAAAAItCxmFjE8gbII8ib8lvneCEdS6z';
+initializeAppCheck(app,{provider:new ReCaptchaEnterpriseProvider(RECAPTCHA_SITE_KEY),isTokenAutoRefreshEnabled:true});
+
 const model=getGenerativeModel(getAI(app,{backend:new GoogleAIBackend()}),{
  model:'gemini-3.5-flash',
- generationConfig:{responseMimeType:'application/json',responseSchema:schema,temperature:0}
+ generationConfig:{responseMimeType:'application/json',responseSchema:schema,thinkingConfig:{thinkingLevel:ThinkingLevel.LOW}}
 });
 
 // 휴대폰 원본 사진은 수 MB라 긴 변 1600px JPEG로 줄여 보낸다.
@@ -47,9 +52,11 @@ export async function scanCard(file:File,companies:string[]=[]):Promise<CardResu
   if(!card.company&&!card.contact&&!card.phone&&!card.email)throw Error('명함 정보를 찾지 못했습니다. 명함이 잘 보이게 다시 찍어 주세요.');
   return card;
  }catch(e:any){
+  console.error('card-scan',e);
   if(e?.message?.startsWith('명함 정보'))throw e;
   const message=String(e?.message||'');
   if(!navigator.onLine)throw Error('인터넷 연결을 확인해 주세요.');
+  if(/App Check/i.test(message))throw Error('명함 인식 보안 확인에 실패했습니다.');
   if(/api-not-enabled|not been used|disabled|PERMISSION_DENIED|403/i.test(message))throw Error('명함 인식이 아직 설정되지 않았습니다.');
   if(/quota|429|RESOURCE_EXHAUSTED/i.test(message))throw Error('오늘 인식 한도를 넘었습니다. 잠시 후 다시 시도해 주세요.');
   throw Error('명함을 인식하지 못했습니다. 다시 시도해 주세요.');
