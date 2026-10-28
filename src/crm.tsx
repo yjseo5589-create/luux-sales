@@ -71,7 +71,7 @@ export default function CRM(){
   const existing=r.kind==='customer'&&!rows.some(x=>x.id===r.id)?sameCompany(r.name):undefined;
   if(!existing)return save([r]);
   const people=contactsOf(existing).filter(filled),added=contactsOf(r).filter(filled).filter(p=>!people.some(q=>samePerson(q,p)));
-  return save([{...existing,contacts:[...people,...added].length?[...people,...added]:[blankContact()]}],added.length?`${existing.name}에 담당자 ${added.length}명을 추가했습니다`:`이미 등록된 ${existing.name} 담당자입니다`);
+  return save([{...existing,contacts:[...people,...added].length?[...people,...added]:[blankContact()]}]);
  }
  // 명함 사진을 읽는 동안 빈 등록창을 먼저 띄우고, 결과는 저장하지 않고 입력칸에만 채운다. 이미 있는 회사면 그 회사의 담당자로 붙인다.
  async function registerFromCard(file:File){
