@@ -1,4 +1,4 @@
-# LUUX 룩스ㅣ영업 관리
+# LUUX Sales
 
 https://yjseo5589-create.github.io/luux-sales/
 
