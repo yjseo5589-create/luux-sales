@@ -1,6 +1,6 @@
 // Google 로그인 사용자의 기록을 Firestore users/{uid}/items에 두고 모든 기기에서 실시간으로 맞춘다.
 // 이 브라우저의 localStorage는 그대로 화면 데이터와 오프라인 사본으로 쓴다.
-import {initializeApp} from 'firebase/app';
+import {app} from './firebase-app';
 import {getAuth,GoogleAuthProvider,onAuthStateChanged,signInWithPopup,signInWithRedirect,getRedirectResult,signOut,type User} from 'firebase/auth';
 import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,collection,doc,getDoc,getDocsFromServer,onSnapshot,writeBatch,serverTimestamp,type Unsubscribe} from 'firebase/firestore';
 import {onRecordsChanged,readRecords,replaceRecords,isUntouchedDefault} from './records';
@@ -8,14 +8,6 @@ import {setSyncState,REMOTE_EVENT} from './sync-state';
 
 type Row={id:string;kind:string;updated?:string;contacts?:any[];[key:string]:any};
 
-const app=initializeApp({
- apiKey:'AIzaSyC1FiluWRkBfwF9rm9ncf0APWLb2nHYDag',
- authDomain:'luux-sales-68821.firebaseapp.com',
- projectId:'luux-sales-68821',
- storageBucket:'luux-sales-68821.firebasestorage.app',
- messagingSenderId:'173052996063',
- appId:'1:173052996063:web:8bb137dbcaca866f2d3c6a'
-});
 const auth=getAuth(app);
 const db=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})});
 
