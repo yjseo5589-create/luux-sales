@@ -14,6 +14,11 @@ type Contact={id:string;contact:string;position:string;department:string;phone:s
 const contactFields=[['contact','이름'],['position','직급 / 직책'],['department','부서'],['phone','휴대전화'],['officePhone','회사 전화'],['email','이메일']] as const;
 const contactsOf=(r:R):Contact[]=>r.contacts?.length?r.contacts:[Object.fromEntries([['id',r.id+'-contact'],...contactFields.map(([key])=>[key,r[key]||''])]) as Contact];
 const blankContact=():Contact=>({id:crypto.randomUUID(),contact:'',position:'',department:'',phone:'',officePhone:'',email:''});
+// 같은 회사·같은 사람 판단. 회사명은 법인 표기와 띄어쓰기를 무시하고, 사람은 휴대전화·이메일(없으면 이름)로 본다.
+const companyKey=(v:string)=>v.replace(/\(주\)|㈜|주식회사|\s/g,'').toLowerCase();
+const digits=(v:string)=>v.replace(/\D/g,'');
+const filled=(p:Contact)=>contactFields.some(([key])=>p[key]?.trim());
+const samePerson=(a:Contact,b:Contact)=>b.phone||b.email?!!((b.phone&&digits(a.phone)===digits(b.phone))||(b.email&&a.email.toLowerCase()===b.email.toLowerCase())):!!b.contact.trim()&&a.contact.trim()===b.contact.trim();
 type R={id:string;kind:string;[k:string]:any};
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 const pageFromHash=()=>['#projects','#history'].includes(location.hash)?'deals':location.hash==='#customers'?'customers':location.hash==='#resources'?'resources':'dashboard';
@@ -60,17 +65,24 @@ export default function CRM(){
  const contactInUse=(companyId:string,personId:string)=>logs.some(r=>r.customer===companyId&&r.contactId===personId)||deals.some(d=>projectRoles.some(role=>d[role.key]===companyId&&d[role.contactKey]===personId));
  async function save(items:R[],message='저장했습니다'){setBusy(true);try{const r=await recordsRequest('/api/records',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:items.map(r=>r.kind==='customer'?{...r,contacts:contactsOf(r),...Object.fromEntries(contactFields.map(([key])=>[key,contactsOf(r)[0][key]]))}:r)})});const d:any=await r.json();if(!r.ok)throw Error(d.error);await reload();setToast(message);return true}catch(e:any){setError(e.message);return false}finally{setBusy(false)}}
  function newRecord(kind:string,customer='',contactId=''){if(kind==='log'&&!customers.length){setToast('먼저 거래처를 등록해 주세요.');kind='customer'}setModal({id:uid(),kind,contactId,contact:contactsOf(customers.find(c=>c.id===customer)||{id:'',kind:'customer'}).find(c=>c.id===contactId)?.contact||'',name:'',type:'광고주',channel:'전화',date:today(),stage:'제안 준비',result:'',customer:customer||(kind==='deal'?'':customers[0]?.id)||'',note:'',next:'',due:'',done:false});}
+ const sameCompany=(company='',except='')=>companyKey(company)?customers.find(c=>c.id!==except&&companyKey(c.name||'')===companyKey(company)):undefined;
+ // 새로 등록하는 거래처가 이미 있는 회사면 새 회사를 만들지 않고, 그 회사에 없는 담당자만 붙인다.
+ async function submit(r:R){
+  const existing=r.kind==='customer'&&!rows.some(x=>x.id===r.id)?sameCompany(r.name):undefined;
+  if(!existing)return save([r]);
+  const people=contactsOf(existing).filter(filled),added=contactsOf(r).filter(filled).filter(p=>!people.some(q=>samePerson(q,p)));
+  return save([{...existing,contacts:[...people,...added].length?[...people,...added]:[blankContact()]}],added.length?`${existing.name}에 담당자 ${added.length}명을 추가했습니다`:`이미 등록된 ${existing.name} 담당자입니다`);
+ }
  // 명함 사진을 읽는 동안 빈 등록창을 먼저 띄우고, 결과는 저장하지 않고 입력칸에만 채운다. 이미 있는 회사면 그 회사의 담당자로 붙인다.
  async function registerFromCard(file:File){
   const id=uid();setRegisterMenu(false);setScan({id,loading:true,note:''});setModal({id,kind:'customer',name:'',type:'광고주',contacts:[blankContact()]});
   try{
    const card=await (await import('./card-scan').catch(()=>{throw Error('명함 인식을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.')})).scanCard(file,customers.map(c=>c.name).filter(Boolean));
    const person={...blankContact(),contact:card.contact,position:card.position,department:card.department,phone:card.phone,officePhone:card.officePhone,email:card.email};
-   const key=(v:string)=>v.replace(/\(주\)|㈜|주식회사|\s/g,'').toLowerCase(),digits=(v:string)=>v.replace(/\D/g,'');
-   const existing=card.company?customers.find(c=>key(c.name||'')===key(card.company)):undefined;
+   const existing=sameCompany(card.company);
    if(!existing){setModal(m=>m?.id===id?{...m,name:card.company,type:card.type,contacts:[person]}:m);setScan(v=>v?.id===id?null:v);return}
-   const people=contactsOf(existing),known=people.some(p=>(person.phone&&digits(p.phone)===digits(person.phone))||(person.email&&p.email.toLowerCase()===person.email.toLowerCase()));
-   setModal(m=>m?.id===id?{...existing,contacts:known?people:[...people.filter(p=>contactFields.some(([k])=>p[k]?.trim())),person]}:m);
+   const people=contactsOf(existing),known=people.some(p=>samePerson(p,person));
+   setModal(m=>m?.id===id?{...existing,contacts:known?people:[...people.filter(filled),person]}:m);
    setScan(v=>v?.id===id?{id:existing.id,loading:false,note:known?'이미 등록된 담당자입니다':'등록된 거래처에 담당자를 추가합니다'}:v);
   }catch(e:any){setScan(v=>{if(v?.id===id){setError(e.message);return null}return v})}
  }
@@ -109,10 +121,10 @@ export default function CRM(){
  {customerLogs(selected).some(r=>!r.contactId)&&<details className="person-history legacy-history"><summary>담당자 미지정 <span>{customerLogs(selected).filter(r=>!r.contactId).length}</span><ChevronRight size={14}/></summary>{customerLogs(selected).filter(r=>!r.contactId).map(r=><LogCard key={r.id} r={r} rows={rows} busy={busy} onEdit={record=>setModal({...record})} onProject={id=>{setSelected('');setProject(id)}} onToggle={record=>{save([{...record,done:!record.done}],record.done?'완료를 취소했습니다.':'후속 업무를 완료했습니다.')}}/>)}</details>}
  </section></div>}
 
- {modal&&<div className="overlay modal-overlay"><section className={"modal "+(modal.kind==='log'?'':'compact-form')} role="dialog" aria-modal="true" aria-label={modal.kind==='customer'?'거래처 등록·수정':modal.kind==='deal'?'프로젝트 등록·수정':'연락 기록'}><div className="modal-head"><div><div className="eyebrow">{modal.kind==='log'?'KEEP THE CONVERSATION':modal.kind==='customer'?'BUILD A CONNECTION':'NEXT OPPORTUNITY'}</div><h2>{modal.kind==='log'?'연락 기록':(modal.kind==='customer'?'거래처 ':'프로젝트 ')+(rows.some(r=>r.id===modal.id)?'수정':'등록')}</h2></div><button className="icon-btn" aria-label="닫기" onClick={()=>setModal(null)}><X size={21}/></button></div><form onSubmit={async e=>{e.preventDefault();if(await save([modal]))setModal(null)}}><div className="modal-fields">{error&&<div className="error" role="alert">{error}<button type="button" className="icon-btn" aria-label="오류 닫기" onClick={()=>setError('')}><X size={15}/></button></div>}
+ {modal&&<div className="overlay modal-overlay"><section className={"modal "+(modal.kind==='log'?'':'compact-form')} role="dialog" aria-modal="true" aria-label={modal.kind==='customer'?'거래처 등록·수정':modal.kind==='deal'?'프로젝트 등록·수정':'연락 기록'}><div className="modal-head"><div><div className="eyebrow">{modal.kind==='log'?'KEEP THE CONVERSATION':modal.kind==='customer'?'BUILD A CONNECTION':'NEXT OPPORTUNITY'}</div><h2>{modal.kind==='log'?'연락 기록':(modal.kind==='customer'?'거래처 ':'프로젝트 ')+(rows.some(r=>r.id===modal.id)?'수정':'등록')}</h2></div><button className="icon-btn" aria-label="닫기" onClick={()=>setModal(null)}><X size={21}/></button></div><form onSubmit={async e=>{e.preventDefault();if(await submit(modal))setModal(null)}}><div className="modal-fields">{error&&<div className="error" role="alert">{error}<button type="button" className="icon-btn" aria-label="오류 닫기" onClick={()=>setError('')}><X size={15}/></button></div>}
  {scan?.id===modal.id&&!scan.loading&&scan.note&&<p className="scan-note">{scan.note}</p>}
  {modal.kind==='customer'&&scan?.id===modal.id&&scan.loading?<p className="scan-status" role="status"><LoaderCircle className="spin" size={16}/>명함 인식 중<small>Protected by reCAPTCHA</small></p>:modal.kind==='customer'?<>
- <div className="form-grid client-first"><label>회사명 *<input data-autofocus required autoComplete="organization" value={modal.name||''} placeholder="회사명" onChange={e=>setModal({...modal,name:e.target.value})}/></label><label>구분<span className="select-control"><select value={modal.type||'광고주'} onChange={e=>setModal({...modal,type:e.target.value})}>{['광고주','대행사','렙사','기타'].map(t=><option key={t}>{t}</option>)}</select><ChevronDown size={16} aria-hidden="true"/></span></label></div>
+ <div className="form-grid client-first"><label>회사명 *<input data-autofocus required autoComplete="organization" value={modal.name||''} placeholder="회사명" onChange={e=>setModal({...modal,name:e.target.value})}/>{!rows.some(r=>r.id===modal.id)&&sameCompany(modal.name)&&<small className="field-hint">등록된 거래처입니다. 저장하면 담당자가 이 회사에 추가됩니다.</small>}</label><label>구분<span className="select-control"><select value={modal.type||'광고주'} onChange={e=>setModal({...modal,type:e.target.value})}>{['광고주','대행사','렙사','기타'].map(t=><option key={t}>{t}</option>)}</select><ChevronDown size={16} aria-hidden="true"/></span></label></div>
  {contactsOf(modal).map((person,index)=><fieldset className="contact-editor" key={person.id}><legend>담당자 {index+1}</legend>{contactsOf(modal).length>1&&<button type="button" className="text-link contact-remove" aria-label={`담당자 ${index+1} 제거`} disabled={contactInUse(modal.id,person.id)} title={contactInUse(modal.id,person.id)?'프로젝트 또는 연락 이력에 연결된 담당자입니다':undefined} onClick={()=>setModal({...modal,contacts:contactsOf(modal).filter(c=>c.id!==person.id)})}>제거</button>}<div className="form-grid">{contactFields.map(([key,label])=><label key={key}>{label}<input aria-label={`담당자 ${index+1} ${label}`} type={key==='email'?'email':key==='phone'||key==='officePhone'?'tel':'text'} value={person[key]} onChange={e=>setModal({...modal,contacts:contactsOf(modal).map(c=>c.id===person.id?{...c,[key]:e.target.value}:c)})}/></label>)}</div></fieldset>)}
  <button type="button" className="btn add-contact" onClick={()=>setModal({...modal,contacts:[...contactsOf(modal),blankContact()]})}><Plus size={15}/>담당자 추가</button>
 
