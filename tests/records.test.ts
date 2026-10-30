@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {recordsRequest,STORAGE_KEY,SEED_KEY,NASMEDIA_ADDITION_KEY} from '../src/records.ts';
+import {recordsRequest,STORAGE_KEY,SEED_KEY,NASMEDIA_ADDITION_KEY,onRecordsChanged} from '../src/records.ts';
 const data=new Map<string,string>();
 Object.defineProperty(globalThis,'localStorage',{value:{getItem:(k:string)=>data.get(k)??null,setItem:(k:string,v:string)=>data.set(k,v)}});
 const first=await (await recordsRequest('/api/records')).json();
@@ -51,6 +51,7 @@ console.log('PASS: targeted contact addition, existing IDs/edits/history preserv
 
 // Standalone tasks persist through the same store without company/project references.
 data.clear();data.set(SEED_KEY,'1');data.set(NASMEDIA_ADDITION_KEY,'1');
+const taskChanges:any[]=[];const unsubscribe=onRecordsChanged(change=>taskChanges.push(change));
 const task={id:'task-1',kind:'task',name:'제안서 검토',done:false,due:'2026-11-01'};
 assert.equal((await request([task])).status,200);
 let taskSaved=(await (await recordsRequest('/api/records')).json()).find((r:any)=>r.id===task.id);
@@ -63,4 +64,8 @@ assert.equal((await request([{...taskSaved,done:'yes'}])).status,400);
 assert.equal((await request([{...taskSaved,name:'  '}])).status,400);
 assert.equal((await recordsRequest('/api/records?id=task-1',{method:'DELETE'})).status,200);
 assert.equal((await (await recordsRequest('/api/records')).json()).length,0);
+assert.equal(taskChanges[0].upserts[0].kind,'task');
+assert.equal(taskChanges[1].upserts[0].done,true);
+assert.deepEqual(taskChanges.at(-1).deletes,['task-1']);
+unsubscribe();
 console.log('PASS: task create, reload, edit, complete, reopen, validation and deletion');
