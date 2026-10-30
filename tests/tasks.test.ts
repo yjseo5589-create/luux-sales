@@ -39,3 +39,17 @@ assert.equal(groupTasks([done])[0].day,'2026-10-30');
 assert.equal((await save([{...done,due:'2026-02-30'}])).status,400);
 assert.equal(JSON.parse(memory.get(STORAGE_KEY)!)[0].due,'2026-11-02');
 console.log('PASS: daily task archive, stable task ordering, legacy dates, KST boundaries, date validation and automatic creation/completion dates');
+
+// Explicit task day remains independent from creation/completion timestamps.
+const planned={id:'planned',kind:'task',name:'선택한 날짜 업무',done:false,taskDate:'2026-11-05'};
+assert.equal((await save([planned])).status,200);
+let plannedSaved=JSON.parse(memory.get(STORAGE_KEY)!).find((r:any)=>r.id==='planned');
+assert.equal(taskDay(plannedSaved),'2026-11-05');
+assert.equal((await save([{...plannedSaved,done:true}])).status,200);
+plannedSaved=JSON.parse(memory.get(STORAGE_KEY)!).find((r:any)=>r.id==='planned');
+assert.equal(groupTasks([plannedSaved])[0].day,'2026-11-05');
+assert.ok(plannedSaved.completedAt);
+assert.equal(taskDay({...base,taskDate:'2026-10-15'}),'2026-10-15');
+assert.equal((await save([{...planned,taskDate:'2026-02-30'}])).status,400);
+assert.equal((await save([{...planned,taskDate:''}])).status,400);
+console.log('PASS: selected task day survives save/reload and completion, overrides legacy start day and rejects invalid dates');
