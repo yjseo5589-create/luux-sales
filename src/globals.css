@@ -93,3 +93,16 @@ input,select,textarea{width:100%;min-width:0;margin:0;border:1px solid #ccc;bord
 .grecaptcha-badge{visibility:hidden}.scan-status{flex-wrap:wrap}.scan-status small{flex-basis:100%;text-align:center;font-size:11px;color:#aaa}
 
 .task-check{display:flex;align-items:center;gap:var(--s4);flex:1;min-width:0;min-height:28px;cursor:pointer;margin:0;font-size:var(--text);color:var(--ink)}.task-check input[type="checkbox"]{appearance:auto;accent-color:var(--ink);width:18px;height:18px;min-width:18px;margin:0;padding:0;cursor:pointer}.task-check>span{overflow-wrap:anywhere;line-height:1.7}.task-entry{flex-wrap:nowrap}.task-entry>input{flex:1;flex-basis:0}.task-row .icon-btn{flex-shrink:0}@media(max-width:640px){.task-check{min-height:44px;gap:var(--s3)}}
+
+/* A compact checklist: separate completion targets and inline text editing. */
+.tasks-section{max-width:880px}.tasks-section .task-entry{margin-bottom:var(--s4)}
+.task-status{display:flex;justify-content:space-between;gap:var(--s4);margin-bottom:var(--s3);font-size:var(--caption);color:var(--muted)}
+.tasks-section .task-row{gap:var(--s3);padding:var(--s2) 0;min-height:52px}
+.task-checkbox{display:grid;place-items:center;width:32px;min-width:32px;height:36px;margin:0;cursor:pointer}
+.task-checkbox input[type="checkbox"]{appearance:auto;accent-color:var(--ink);width:18px;height:18px;margin:0;padding:0;cursor:pointer}
+.task-title{flex:1;min-width:0;text-align:left;padding:6px 0;line-height:1.7;overflow-wrap:anywhere;white-space:pre-wrap}
+.task-title:hover{color:var(--muted)}.task-done .task-title{color:var(--muted);text-decoration:line-through}
+.task-edit{display:flex;align-items:center;gap:var(--s1);flex:1;min-width:0}.task-edit input{flex:1;min-width:0;height:36px;padding:0 var(--s2)}
+.task-completed{margin-top:var(--s6)}.task-completed summary{display:flex;align-items:center;gap:var(--s2);min-height:36px;cursor:pointer;list-style:none;font-size:var(--body-small);color:var(--muted)}.task-completed summary::-webkit-details-marker{display:none}.task-completed[open]>summary>svg{transform:rotate(90deg)}.task-completed summary span{font-size:var(--caption)}.task-completed .task-list{margin-top:var(--s2)}
+.task-undo{display:flex;align-items:center;gap:var(--s3);margin-top:var(--s4);padding:var(--s2) var(--s3);background:var(--soft);font-size:var(--body-small)}.task-undo>span{flex:1}
+@media(max-width:640px){.task-checkbox{width:36px;min-width:36px;height:44px}.tasks-section .task-row{min-height:56px;padding:var(--s1) 0}.task-edit input{font-size:16px}.task-status>span:last-child{font-size:11px}}
