@@ -75,9 +75,9 @@ input,select,textarea{width:100%;min-width:0;margin:0;border:1px solid #ccc;bord
 /* Tasks and activity share the existing controls, spacing and neutral palette. */
 .task-entry{display:flex;align-items:center;gap:var(--s3);margin-bottom:var(--s6)}
 .task-entry>input{flex:1;min-width:0}.task-entry input{height:var(--control);border:1px solid var(--line);border-radius:var(--radius);padding:0 var(--s3);background:#fff;color:var(--ink)}
-.task-date input{width:160px}.task-row{display:flex;align-items:center;gap:var(--s4);padding:var(--s6) 0;border-bottom:1px solid var(--line)}
+.task-list{border-top:1px solid var(--line)}.task-row{display:flex;align-items:center;gap:var(--s4);padding:var(--s6) 0;border-bottom:1px solid var(--line)}
 .task-copy{flex:1;min-width:0;overflow-wrap:anywhere}.task-copy>span{display:block}.task-copy small{display:block;margin-top:var(--s1);font-size:var(--caption);color:var(--muted)}
-.task-done .task-copy>span{color:var(--muted);text-decoration:line-through}.task-row .delete-action{margin-left:0}
+.task-done .task-check>span{color:var(--muted);text-decoration:line-through}.task-row .delete-action{margin-left:0}
 .activity-columns,.activity-row{display:grid;grid-template-columns:100px minmax(160px,1fr) minmax(0,2fr) 14px;gap:var(--s6);align-items:start}
 .activity-columns{padding:20px 0;border-bottom:1px solid var(--line);font-size:var(--caption);color:var(--muted)}
 .activity-row{width:100%;text-align:left;padding:var(--s6) 0;border-bottom:1px solid var(--line);line-height:1.7}.activity-row:hover{background:#fafafa}
@@ -91,3 +91,5 @@ input,select,textarea{width:100%;min-width:0;margin:0;border:1px solid #ccc;bord
 .register-choice{position:relative}.register-menu{position:absolute;top:calc(100% + var(--s2));right:0;z-index:20;display:flex;flex-direction:column;min-width:100%;padding:var(--s1) 0;border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.08)}.register-menu button{display:flex;align-items:center;gap:var(--s2);height:var(--control);padding:0 var(--s4);font-size:var(--body-small);color:var(--ink);text-align:left;white-space:nowrap}.register-menu button svg{color:var(--muted)}.register-menu button:hover,.register-menu button:focus-visible{background:var(--soft);outline:0}
 .scan-status{display:flex;align-items:center;justify-content:center;gap:var(--s2);padding:48px 0;color:var(--muted);font-size:var(--body-small)}.scan-note{margin:0 0 var(--s4);padding-bottom:var(--s3);border-bottom:1px solid var(--line);color:var(--muted);font-size:var(--caption);line-height:1.6}
 .grecaptcha-badge{visibility:hidden}.scan-status{flex-wrap:wrap}.scan-status small{flex-basis:100%;text-align:center;font-size:11px;color:#aaa}
+
+.task-check{display:flex;align-items:center;gap:var(--s4);flex:1;min-width:0;min-height:28px;cursor:pointer;margin:0;font-size:var(--text);color:var(--ink)}.task-check input[type="checkbox"]{appearance:auto;accent-color:var(--ink);width:18px;height:18px;min-width:18px;margin:0;padding:0;cursor:pointer}.task-check>span{overflow-wrap:anywhere;line-height:1.7}.task-entry{flex-wrap:nowrap}.task-entry>input{flex:1;flex-basis:0}.task-row .icon-btn{flex-shrink:0}@media(max-width:640px){.task-check{min-height:44px;gap:var(--s3)}}
