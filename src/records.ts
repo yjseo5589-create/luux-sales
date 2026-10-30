@@ -53,12 +53,14 @@ export async function recordsRequest(path:string,options:RequestInit={}):Promise
     const all=new Map(rows.map(r=>[r.id,r]));
     const ids=new Set<string>();
     for(const r of items){
-     if(!r||typeof r.id!=='string'||!r.id||r.id.length>100||!['customer','deal','log'].includes(r.kind)||ids.has(r.id))throw Error('입력 형식을 확인해 주세요.');
+     if(!r||typeof r.id!=='string'||!r.id||r.id.length>100||!['customer','deal','log','task'].includes(r.kind)||ids.has(r.id))throw Error('입력 형식을 확인해 주세요.');
      ids.add(r.id);const old=all.get(r.id);if(old&&old.kind!==r.kind)throw Error('기록 유형은 바꿀 수 없습니다.');all.set(r.id,r);
     }
     for(const r of items){
      if(!(r.kind==='log'?r.note:r.name)?.trim())throw Error('이름 또는 연락 내용을 입력해 주세요.');
-     if(r.kind==='customer'){
+     if(r.kind==='task'){
+      if(typeof r.done!=='boolean'||(r.due&&!/^\d{4}-\d{2}-\d{2}$/.test(r.due)))throw Error('할 일의 완료 상태와 기한을 확인해 주세요.');
+     }else if(r.kind==='customer'){
       if(r.contacts&&(!Array.isArray(r.contacts)||!r.contacts.length||r.contacts.length>100))throw Error('담당자 정보를 확인해 주세요.');
       const pids=new Set();for(const p of r.contacts||[]){if(!p.id||pids.has(p.id))throw Error('담당자 정보가 중복되었습니다.');pids.add(p.id);}
      }else{

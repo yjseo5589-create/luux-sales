@@ -14,5 +14,5 @@ export function dashboardData(rows:ProjectRecord[],today:string){
  }).sort((a,b)=>(b.days??-1)-(a.days??-1)||a.project.name.localeCompare(b.project.name,'ko'));
  const won=projects.filter(p=>['수주','집행 중','완료'].includes(projectStage(p)));
  const lost=projects.filter(p=>projectStage(p)==='미수주');
- return {pipeline,followups,recent:logs.slice(0,5),won,lost};
+ return {pipeline,followups,recent:logs.slice(0,4),activities:logs,won,lost};
 }

@@ -41,7 +41,7 @@ assert.deepEqual(summary.pipeline.map(p=>p.projects.length),[1,2,1]);
 assert.deepEqual(summary.followups.map(f=>[f.project.id,f.days]),[['overdue',14],['no-log',null]]);
 assert.deepEqual(summary.won.map(p=>p.id),['legacy','live','flip-won','future','boundary','previous-month']);
 assert.deepEqual(summary.lost.map(p=>p.id),['flip-lost']);
-assert.equal(summary.recent.length,5);
+assert.equal(summary.recent.length,4);
 assert.equal(summary.recent[0].id,'recent5');
 assert.equal(dashboardData(projects,'2026-11-25').won.length,summary.won.length);
 assert.equal(dashboardData([],'2026-10-25').won.length,0);
@@ -64,7 +64,7 @@ assert.equal((await request([{...saved,stage:'미수주'}])).status,200);
 saved=JSON.parse(memory.get(STORAGE_KEY)!).find((r:any)=>r.id==='p');
 assert.equal(saved.stageHistory.length,2);
 assert.equal(saved.stageHistory.at(-1).to,'미수주');
-console.log('PASS: automatic stage dates, no legacy backfill, audit-field integrity, KST/month boundaries, overall stage outcomes, follow-up thresholds and recent five');
+console.log('PASS: automatic stage dates, no legacy backfill, audit-field integrity, KST/month boundaries, overall stage outcomes, follow-up thresholds and recent four');
 const dateUnknown=dashboardData([{...base,stage:'제안 완료'},{id:'invalid',kind:'log',deal:'p',date:'2026-00-01',note:'날짜 확인 필요'}],'2026-10-25');
 assert.equal(dateUnknown.followups[0].reason,'연락일 확인 필요');
 console.log('PASS: invalid/unknown contact dates remain distinguishable from no contact records');
@@ -72,3 +72,7 @@ console.log('PASS: invalid/unknown contact dates remain distinguishable from no 
 assert.equal(dashboardData([{...base,stage:'완료'}],'2026-10-25').won.length,1);
 assert.equal(dashboardData([{...base,stage:'미수주'}],'2026-10-25').lost.length,1);
 console.log('PASS: all-time stage counts include undated, executing and completed projects without double counting');
+
+assert.equal(summary.activities.length,8);
+assert.ok(!summary.activities.some(r=>r.id==='tomorrow'));
+assert.deepEqual(summary.recent,summary.activities.slice(0,4));

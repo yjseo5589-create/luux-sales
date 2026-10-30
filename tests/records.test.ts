@@ -48,3 +48,19 @@ migrated=await (await recordsRequest('/api/records')).json();
 assert.deepEqual(migrated.map((r:any)=>r.id),['nasmedia-20261026']);
 assert.equal(migrated[0].contacts.length,2);
 console.log('PASS: targeted contact addition, existing IDs/edits/history preserved, no duplicates or deleted-record restoration');
+
+// Standalone tasks persist through the same store without company/project references.
+data.clear();data.set(SEED_KEY,'1');data.set(NASMEDIA_ADDITION_KEY,'1');
+const task={id:'task-1',kind:'task',name:'제안서 검토',done:false,due:'2026-11-01'};
+assert.equal((await request([task])).status,200);
+let taskSaved=(await (await recordsRequest('/api/records')).json()).find((r:any)=>r.id===task.id);
+assert.equal(taskSaved.name,task.name);
+assert.equal((await request([{...taskSaved,done:true,completedAt:'2026-10-30T01:00:00Z'}])).status,200);
+taskSaved=(await (await recordsRequest('/api/records')).json()).find((r:any)=>r.id===task.id);
+assert.equal(taskSaved.done,true);
+assert.equal((await request([{...taskSaved,name:'수정한 업무',done:false,due:''}])).status,200);
+assert.equal((await request([{...taskSaved,done:'yes'}])).status,400);
+assert.equal((await request([{...taskSaved,name:'  '}])).status,400);
+assert.equal((await recordsRequest('/api/records?id=task-1',{method:'DELETE'})).status,200);
+assert.equal((await (await recordsRequest('/api/records')).json()).length,0);
+console.log('PASS: task create, reload, edit, complete, reopen, validation and deletion');
