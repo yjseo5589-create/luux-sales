@@ -117,3 +117,5 @@ input,select,textarea{width:100%;min-width:0;margin:0;border:1px solid #ccc;bord
 
 .task-day-group .task-row{padding:var(--s4) 0;min-height:80px;gap:var(--s4)}.task-day-group .task-title:hover{color:inherit}.task-day-group .task-row>.icon-btn{margin-top:2px}@media(max-width:640px){.task-day-group .task-row{padding:var(--s4) 0;gap:var(--s2)}}
 .tasks-section{max-width:none}
+
+.task-day-group .task-row{align-items:center;min-height:64px;padding:var(--s3) 0}.task-create-form .task-entry{margin-bottom:0}.task-day-group .task-row>.icon-btn{margin-top:0}

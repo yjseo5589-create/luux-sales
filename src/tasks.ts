@@ -6,8 +6,7 @@ export function taskDay(task:TaskRecord){return validTaskDay(task.start||'')?tas
 export function groupTasks(rows:TaskRecord[],query=''){
  const groups=new Map<string,TaskRecord[]>();
  for(const task of rows.filter(r=>r.kind==='task'&&(r.name||'').toLowerCase().includes(query.trim().toLowerCase()))){const day=taskDay(task);groups.set(day,[...(groups.get(day)||[]),task])}
- const priority=(task:TaskRecord)=>({높음:0,보통:1,낮음:2}[task.priority||'보통']??1);
- return [...groups].sort(([a],[b])=>b.localeCompare(a)).map(([day,tasks])=>({day,tasks:tasks.sort((a,b)=>priority(a)-priority(b)||(a.due||'9999').localeCompare(b.due||'9999')||(b.createdAt||'').localeCompare(a.createdAt||''))}));
+ return [...groups].sort(([a],[b])=>b.localeCompare(a)).map(([day,tasks])=>({day,tasks:tasks.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''))}));
 }
 export function taskValidation(task:TaskRecord){
  if(typeof task.done!=='boolean')return '완료 상태를 확인해 주세요.';

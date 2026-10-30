@@ -14,7 +14,7 @@ const groups=groupTasks([
  {id:'company',kind:'customer',name:'회사'},
 ]);
 assert.deepEqual(groups.map(g=>g.day),['2026-10-30','2026-10-28','']);
-assert.deepEqual(groups[0].tasks.map(t=>t.id),['high','normal']);
+assert.deepEqual(groups[0].tasks.map(t=>t.id),['normal','high']);
 assert.equal(groups[1].tasks[0].done,true);
 assert.equal(groupTasks(groups.flatMap(g=>g.tasks),'기존')[0].day,'');
 const created=withTaskMetadata(undefined,base,'2026-10-30T01:00:00Z');
@@ -38,4 +38,4 @@ assert.equal(done.createdAt,saved.createdAt);
 assert.equal(groupTasks([done])[0].day,'2026-10-30');
 assert.equal((await save([{...done,due:'2026-02-30'}])).status,400);
 assert.equal(JSON.parse(memory.get(STORAGE_KEY)!)[0].due,'2026-11-02');
-console.log('PASS: daily task archive, priority ordering, legacy dates, KST boundaries, date validation and automatic creation/completion dates');
+console.log('PASS: daily task archive, stable task ordering, legacy dates, KST boundaries, date validation and automatic creation/completion dates');
