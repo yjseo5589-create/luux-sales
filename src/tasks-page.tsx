@@ -1,35 +1,31 @@
 import {useRef,useState} from 'react';
-import {Check,ChevronRight,Plus,Trash2,Undo2,X} from 'lucide-react';
-type Task={id:string;kind:string;[key:string]:any};
-type Props={rows:Task[];query:string;busy:boolean;onSave:(items:Task[],message?:string)=>Promise<boolean>;onDelete:(r:Task)=>Promise<boolean>};
+import {Check,ChevronDown,ChevronRight,Plus,Pencil,Trash2} from 'lucide-react';
+import {groupTasks,taskPriorities,taskTimestampDay,taskValidation,type TaskRecord} from './tasks';
+type Task=TaskRecord&{name:string;done:boolean};
+type Props={rows:TaskRecord[];query:string;busy:boolean;onSave:(items:TaskRecord[],message?:string)=>Promise<boolean>;onDelete:(r:TaskRecord)=>Promise<boolean>};
+const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+const dateLabel=(day:string)=>day?day.replaceAll('-','.'):'';
+function Schedule({value,onChange,disabled}:{value:TaskRecord;onChange:(v:TaskRecord)=>void;disabled:boolean}){return <div className="task-schedule"><label>시작일<input aria-label="시작일" type="date" disabled={disabled} value={value.start||''} onInput={e=>onChange({...value,start:e.currentTarget.value})}/></label><label>마감일<input aria-label="마감일" type="date" disabled={disabled} min={value.start||undefined} value={value.due||''} onInput={e=>onChange({...value,due:e.currentTarget.value})}/></label><label>우선순위<span className="select-control"><select disabled={disabled} aria-label="우선순위" value={value.priority||'보통'} onChange={e=>onChange({...value,priority:e.target.value})}>{taskPriorities.map(p=><option key={p}>{p}</option>)}</select><ChevronDown size={16}/></span></label></div>}
 export default function TasksPage({rows,query,busy,onSave,onDelete}:Props){
- const [name,setName]=useState(''),[editing,setEditing]=useState(''),[draft,setDraft]=useState(''),[deleted,setDeleted]=useState<Task|null>(null);
- const input=useRef<HTMLInputElement>(null),submitting=useRef(false),editingValue=useRef('');
- const tasks=rows.filter(r=>r.kind==='task'&&r.name.toLowerCase().includes(query.trim().toLowerCase())).reverse();
- const active=tasks.filter(t=>!t.done),completed=tasks.filter(t=>t.done);
- async function finish(task:Task){
-  if(editingValue.current!==task.id||submitting.current)return;
-  const value=draft.trim();
-  if(!value||value===task.name){editingValue.current='';setEditing('');return}
-  submitting.current=true;
-  try{if(await onSave([{...task,name:value}],'')){editingValue.current='';setEditing('')}}finally{submitting.current=false}
- }
- function edit(task:Task){editingValue.current=task.id;setEditing(task.id);setDraft(task.name)}
- function cancel(){editingValue.current='';setEditing('')}
- const row=(task:Task)=><article className={'task-row'+(task.done?' task-done':'')} key={task.id}>
- <label className="task-checkbox"><input type="checkbox" aria-label={`${task.name} ${task.done?'완료 취소':'완료'}`} checked={task.done} disabled={busy} onChange={e=>onSave([{...task,done:e.target.checked,completedAt:e.target.checked?new Date().toISOString():''}],'')}/><span className="sr-only">{task.name}</span></label>
- {editing===task.id?<div className="task-edit"><input aria-label="할 일 수정" autoFocus maxLength={300} value={draft} onFocus={e=>e.target.select()} onChange={e=>setDraft(e.target.value)} onBlur={()=>finish(task)} onKeyDown={e=>{if(e.nativeEvent.isComposing)return;if(e.key==='Enter'){e.preventDefault();finish(task)}if(e.key==='Escape'){e.preventDefault();cancel()}}}/><button className="icon-btn" aria-label="수정 저장" disabled={busy||!draft.trim()} onMouseDown={e=>e.preventDefault()} onClick={()=>finish(task)}><Check size={14}/></button><button className="icon-btn" aria-label="수정 취소" onMouseDown={e=>e.preventDefault()} onClick={cancel}><X size={14}/></button></div>:<button className="task-title" aria-label={`${task.name} 수정`} title="클릭하여 수정" disabled={busy} onClick={()=>edit(task)}>{task.name}</button>}
- <button className="icon-btn delete-action" aria-label={`${task.name} 삭제`} disabled={busy} onMouseDown={e=>e.preventDefault()} onClick={async()=>{if(await onDelete(task)){setDeleted(task);if(editing===task.id)cancel()}}}><Trash2 size={14}/></button>
+ const [name,setName]=useState(''),[schedule,setSchedule]=useState<TaskRecord>({id:'',kind:'task',done:false,start:today(),due:'',priority:'보통'}),[draft,setDraft]=useState<Task|null>(null),[error,setError]=useState('');
+ const input=useRef<HTMLInputElement>(null),submitting=useRef(false);
+ const groups=groupTasks(rows,query),tasks=groups.flatMap(g=>g.tasks),active=tasks.filter(t=>!t.done);
+ const day=today();
+ async function submit(task:TaskRecord,editing=false){if(busy||submitting.current)return;const error=taskValidation(task);if(error){setError(error);return}submitting.current=true;setError('');try{if(await onSave([task])){if(editing)setDraft(null);else{setName('');setSchedule(v=>({...v,due:''}))}}}finally{submitting.current=false}}
+ const row=(task:TaskRecord)=><article className={'task-row'+(task.done?' task-done':'')} key={task.id}>
+ <label className="task-checkbox"><input type="checkbox" aria-label={`${task.name} ${task.done?'완료 취소':'완료'}`} checked={task.done} disabled={busy} onChange={e=>onSave([{...task,done:e.target.checked}],e.target.checked?'완료했습니다.':'완료를 취소했습니다.')}/><span className="sr-only">{task.name}</span></label>
+ {draft?.id===task.id?<form className="task-inline-form" aria-label="할 일 수정" onSubmit={e=>{e.preventDefault();submit({...draft,name:draft.name.trim()},true)}} onKeyDown={e=>{if(e.key==='Escape'){setDraft(null);setError('')}}}><input autoFocus required aria-label="할 일 수정" maxLength={300} value={draft.name} onChange={e=>setDraft({...draft,name:e.target.value})}/><Schedule value={draft} onChange={v=>setDraft(v as Task)} disabled={busy}/>{error&&<p className="task-form-error" role="alert">{error}</p>}<div className="task-edit-actions"><button type="button" className="btn" onClick={()=>{setDraft(null);setError('')}}>취소</button><button className="btn primary" disabled={busy||!draft.name.trim()}><Check size={14}/>저장</button></div></form>:<div className="task-content"><span className="task-title">{task.name}</span><div className="task-meta">{task.start&&<span>시작 {dateLabel(task.start)}</span>}{task.due&&<span>마감 {dateLabel(task.due)}{!task.done&&task.due<day?' · 기한 경과':''}</span>}<span className={'task-priority '+(task.priority==='높음'?'task-priority-high':'')}>{task.priority||'보통'}</span>{task.done&&<span>완료{task.completedAt?' '+dateLabel(taskTimestampDay(task.completedAt)):''}</span>}</div></div>}
+ <button className="icon-btn" aria-label={`${task.name} 수정`} disabled={busy} onClick={()=>{setDraft(task as Task);setError('')}}><Pencil size={14}/></button>
+ <button className="icon-btn delete-action" aria-label={`${task.name} 삭제`} disabled={busy} onClick={async()=>{if(await onDelete(task))if(draft?.id===task.id)setDraft(null)}}><Trash2 size={14}/></button>
  </article>;
  return <section className="tasks-section" aria-label="할 일 목록">
- <form className="task-entry" onSubmit={async e=>{e.preventDefault();if(!name.trim()||busy||submitting.current)return;submitting.current=true;const value=name.trim();try{if(await onSave([{id:crypto.randomUUID(),kind:'task',done:false,name:value}],'')){setName('');input.current?.focus({preventScroll:true})}}finally{submitting.current=false}}}>
- <input ref={input} aria-label="할 일" placeholder="할 일 입력 후 Enter" required readOnly={busy} maxLength={300} value={name} onChange={e=>setName(e.target.value)}/>
- <button className="btn primary" disabled={busy||!name.trim()}><Plus size={15}/>추가</button>
+ <form className="task-create-form" aria-label="할 일 추가" onSubmit={e=>{e.preventDefault();if(name.trim())submit({...schedule,id:crypto.randomUUID(),kind:'task',done:false,name:name.trim()})}}>
+ <div className="task-entry"><input ref={input} aria-label="할 일" placeholder="할 일 입력" required readOnly={busy} maxLength={300} value={name} onChange={e=>setName(e.target.value)}/><button className="btn primary" disabled={busy||!name.trim()}><Plus size={15}/>추가</button></div>
+ <Schedule value={schedule} onChange={setSchedule} disabled={busy}/>{error&&!draft&&<p className="task-form-error" role="alert">{error}</p>}
  </form>
- <div className="task-status"><span aria-live="polite">할 일 {active.length}</span><span>내용을 누르면 수정</span></div>
- <div className="task-list">{active.map(row)}</div>
- {!active.length&&<p className="dashboard-empty">{query?'검색 결과 없음':completed.length?'할 일을 모두 마쳤습니다':'할 일을 추가해 주세요'}</p>}
- {!!completed.length&&<details className="task-completed"><summary><ChevronRight size={14}/>완료 <span>{completed.length}</span></summary><div className="task-list">{completed.map(row)}</div></details>}
- {deleted&&<div className="task-undo" role="status"><span>삭제했습니다.</span><button className="compact-action" disabled={busy} onClick={async()=>{if(await onSave([deleted],''))setDeleted(null)}}><Undo2 size={13}/>되돌리기</button><button className="icon-btn" aria-label="안내 닫기" onClick={()=>setDeleted(null)}><X size={14}/></button></div>}
+ <div className="task-status"><span aria-live="polite">미완료 {active.length} · 완료 {tasks.length-active.length}</span><span>시작일 기준</span></div>
+ {groups.map(group=><details className="task-day-group" key={group.day||'undated'} open><summary><ChevronRight size={14}/><h2>{group.day?(group.day===day?'오늘 · ':'')+dateLabel(group.day):'날짜 미지정'}</h2><span>{group.tasks.filter(t=>t.done).length}/{group.tasks.length}</span></summary><div className="task-list">{group.tasks.map(row)}</div></details>)}
+ {!tasks.length&&<p className="dashboard-empty">{query?'검색 결과 없음':'할 일을 추가해 주세요'}</p>}
+
  </section>
 }

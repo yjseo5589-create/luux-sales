@@ -1,3 +1,4 @@
+import {taskValidation,withTaskMetadata} from './tasks.ts';
 import {withProjectTimeline} from './project-timeline.ts';
 import {projectCompanyIds,projectRoles,companyContacts} from './projects.ts';
 import defaults from './default-records.json' with {type:'json'};
@@ -72,7 +73,7 @@ export async function recordsRequest(path:string,options:RequestInit={}):Promise
     for(const r of items){
      if(!(r.kind==='log'?r.note:r.name)?.trim())throw Error('이름 또는 연락 내용을 입력해 주세요.');
      if(r.kind==='task'){
-      if(typeof r.done!=='boolean'||(r.due&&!/^\d{4}-\d{2}-\d{2}$/.test(r.due)))throw Error('할 일의 완료 상태와 기한을 확인해 주세요.');
+      const error=taskValidation(r);if(error)throw Error(error);
      }else if(r.kind==='customer'){
       if(r.contacts&&(!Array.isArray(r.contacts)||!r.contacts.length||r.contacts.length>100))throw Error('담당자 정보를 확인해 주세요.');
       const pids=new Set();for(const p of r.contacts||[]){if(!p.id||pids.has(p.id))throw Error('담당자 정보가 중복되었습니다.');pids.add(p.id);}
@@ -100,7 +101,7 @@ export async function recordsRequest(path:string,options:RequestInit={}):Promise
      if(r.kind==='log'&&r.deal){const deal=all.get(r.deal);if(!deal||!projectCompanyIds(deal).includes(r.customer))throw Error('연락 이력에 연결된 프로젝트 거래처를 확인해 주세요.');}
     }
     const updated=new Date().toISOString();
-    const next=[...all.values()].map(r=>{const {legacyImport,...value}=r;return ids.has(r.id)?{...(r.kind==='deal'?withProjectTimeline(rows.find(old=>old.id===r.id),value,updated):value),updated}:value;});
+    const next=[...all.values()].map(r=>{const {legacyImport,...value}=r;return ids.has(r.id)?{...(r.kind==='deal'?withProjectTimeline(rows.find(old=>old.id===r.id),value,updated):r.kind==='task'?withTaskMetadata(rows.find(old=>old.id===r.id),value,updated):value),updated}:value;});
     localStorage.setItem(STORAGE_KEY,JSON.stringify(next));
     notify({upserts:next.filter(r=>ids.has(r.id)),deletes:[]});
     return Response.json({ok:true});
