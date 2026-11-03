@@ -24,7 +24,7 @@ export default function TasksPage({rows,query,busy,onSave,onDelete}:Props){
  </form>
  <div className="task-status"><span aria-live="polite">미완료 {active.length} · 완료 {tasks.length-active.length}</span></div>
  {groups.map(group=><details className="task-day-group" key={group.day||'undated'} open><summary><ChevronRight size={14}/><h2>{group.day?(group.day===day?'오늘 · ':'')+dateLabel(group.day):'날짜 미지정'}</h2><span>{group.tasks.filter(t=>t.done).length}/{group.tasks.length}</span></summary><div className="task-list">{group.tasks.map(row)}</div></details>)}
- {!tasks.length&&<p className="dashboard-empty">{query?'검색 결과 없음':'업무을 추가해 주세요'}</p>}
+ {!tasks.length&&<p className="dashboard-empty">{query?'검색 결과 없음':'업무를 추가해 주세요'}</p>}
 
  </section>
 }
