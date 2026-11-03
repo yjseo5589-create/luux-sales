@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {groupTasks,taskDay,taskValidation,withTaskMetadata} from '../src/tasks.ts';
+import {groupTasks,taskDay,taskValidation,withTaskMetadata,reorderTasks} from '../src/tasks.ts';
 import {recordsRequest,STORAGE_KEY,SEED_KEY,NASMEDIA_ADDITION_KEY} from '../src/records.ts';
 const base={id:'task',kind:'task',name:'제안서 검토',done:false,start:'2026-10-30',due:'2026-11-02',priority:'높음'};
 assert.equal(taskValidation(base),'');
@@ -53,3 +53,32 @@ assert.equal(taskDay({...base,taskDate:'2026-10-15'}),'2026-10-15');
 assert.equal((await save([{...planned,taskDate:'2026-02-30'}])).status,400);
 assert.equal((await save([{...planned,taskDate:''}])).status,400);
 console.log('PASS: selected task day survives save/reload and completion, overrides legacy start day and rejects invalid dates');
+
+const ordered=[
+ {id:'a',kind:'task',name:'첫 업무',done:false,taskDate:'2026-11-03',createdAt:'2026-11-03T03:00:00Z'},
+ {id:'b',kind:'task',name:'둘째 업무',done:true,taskDate:'2026-11-03',createdAt:'2026-11-03T02:00:00Z',completedAt:'2026-11-03T02:30:00Z'},
+ {id:'c',kind:'task',name:'숨겨진 업무',done:false,taskDate:'2026-11-03',createdAt:'2026-11-03T01:00:00Z'},
+ {id:'other',kind:'task',name:'다른 날짜',done:false,taskDate:'2026-11-04'},
+];
+const reordered=reorderTasks(ordered,'c','a');
+assert.deepEqual(reordered.map(r=>r.id),['c','a','b']);
+assert.equal(reordered.find(r=>r.id==='b')?.done,true);
+assert.equal(reordered.find(r=>r.id==='b')?.completedAt,ordered[1].completedAt);
+assert.equal(reordered.every(r=>r.taskDate==='2026-11-03'),true);
+assert.deepEqual(reorderTasks(ordered,'a','other'),[]);
+assert.deepEqual(reorderTasks(ordered,'a','a'),[]);
+assert.deepEqual(reorderTasks(ordered,'missing','a'),[]);
+assert.deepEqual(reorderTasks(ordered,'a','b',true).map(r=>r.id),['b','a','c']);
+assert.equal((await save(ordered)).status,200);
+assert.equal((await save(reordered)).status,200);
+let ranked=JSON.parse(memory.get(STORAGE_KEY)!);
+assert.deepEqual(groupTasks(ranked).find(g=>g.day==='2026-11-03')?.tasks.map(r=>r.id),['c','a','b']);
+const changed=ranked.find((r:any)=>r.id==='a');
+assert.equal((await save([{...changed,done:true,name:'수정한 첫 업무'}])).status,200);
+ranked=JSON.parse(memory.get(STORAGE_KEY)!);
+assert.deepEqual(groupTasks(ranked).find(g=>g.day==='2026-11-03')?.tasks.map(r=>r.id),['c','a','b']);
+assert.equal((await save([{...changed,sortOrder:-1}])).status,400);
+assert.equal((await save([{...changed,sortOrder:NaN}])).status,400);
+const fresh={id:'fresh-task',kind:'task',name:'새 업무',done:false,taskDate:'2026-11-03',createdAt:'2026-11-03T04:00:00Z'};
+assert.equal(groupTasks([...ranked,fresh]).find(g=>g.day==='2026-11-03')?.tasks[0].id,'fresh-task');
+console.log('PASS: persisted task order, hidden tasks preserved, cross-date moves blocked, completion/edit dates retained and new tasks added first');
