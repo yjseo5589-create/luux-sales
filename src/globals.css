@@ -157,3 +157,71 @@ input,select,textarea{width:100%;min-width:0;margin:0;border:1px solid #ccc;bord
 .dashboard-empty{min-height:88px;margin:0;padding:var(--s6) var(--s4);display:flex;align-items:center;justify-content:center}
 .dashboard button:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 @media(max-width:640px){.dashboard{grid-template-columns:minmax(0,1fr);gap:var(--s6)}.dashboard-meeting{gap:var(--s3)}.dashboard-row-heading{flex-wrap:wrap;column-gap:var(--s3);row-gap:0}.dashboard-meeting-time{min-width:68px}}
+
+/* Management screens use the dashboard's shared type, spacing and action scale. */
+.page-heading{min-height:40px;align-items:center}
+.list-toolbar,.project-toolbar{min-height:64px;padding:var(--s3) 0;gap:var(--s4)}
+.list-toolbar .tabs button{min-height:40px;padding:var(--s2) 0}
+.list-toolbar .tabs button.active:after{bottom:-13px}
+.list-result{display:flex;align-items:center;gap:var(--s2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.company-accordion>summary{min-height:64px;padding:var(--s4) 0;font-size:var(--body-small);font-weight:600;gap:var(--s4)}
+.company-accordion>summary>span{min-width:0;overflow-wrap:anywhere}
+.company-contacts{padding-bottom:var(--s4)}
+.contact-columns,.project-columns{padding:var(--s4) 0;font-size:var(--caption);line-height:1.6}
+.contact-record{padding:var(--s4) 0;font-size:var(--body-small);line-height:1.6}
+.project-row{min-height:80px;padding:var(--s4) 0;font-size:var(--body-small);line-height:1.6}
+.project-row>svg{color:var(--muted);width:14px;height:14px;justify-self:end}
+.project-title b{font-size:var(--body-small);font-weight:600}
+.project-stage,.project-due{font-size:var(--caption);color:var(--muted)}
+.contact-list-toolbar{min-height:32px;margin-bottom:var(--s3)}
+.contact-list-toolbar>.compact-action{margin-right:-6px}
+.meeting-day>h2,.task-day-group>summary h2{font-size:var(--body-small);font-weight:600;line-height:24px}
+.meeting-day{margin-top:var(--s6)}
+.meeting-day>h2{padding-bottom:var(--s3)}
+.meeting-row{min-height:88px;padding:var(--s4) 0;gap:var(--s4);align-items:center}
+.meeting-time{min-width:72px}
+.meeting-time b,.meeting-title h3{font-size:var(--body-small);line-height:1.6}
+.meeting-copy>p{font-size:var(--caption);line-height:1.6}
+.meeting-actions{gap:var(--s2)}
+.meeting-actions .delete-action{margin-left:0}
+.task-status{min-height:32px;align-items:center;margin-bottom:var(--s3);line-height:1.6}
+.task-day-group{margin-top:var(--s4)}
+.task-day-group>summary{min-height:48px;gap:var(--s2)}
+.task-day-group .task-title{font-size:var(--body-small);line-height:1.6}
+.task-day-group .task-row{min-height:64px;gap:var(--s3);padding:var(--s3) 0}
+.task-day-group .task-row>.icon-btn{margin:0}
+.task-day-group .task-row .delete-action{margin-left:0}
+.empty{min-height:88px;padding:var(--s6) var(--s4);border-bottom:1px solid var(--line);font-size:var(--body-small);line-height:1.6}
+.modal-fields{gap:var(--s4)}
+.modal-head,.detail-header{min-width:0}
+.modal-head h2,.detail-header h2{font-size:20px;font-weight:500;line-height:1.5}
+.modal-footer{gap:var(--s2)}
+.drawer .project-detail-section h3,.person-heading h3{font-size:var(--body-small);line-height:1.6}
+.drawer .project-info dd,.person-summary dd{font-size:var(--body-small);line-height:1.6}
+@media(max-width:760px){
+ .project-row{padding:var(--s4) 0;min-height:80px;gap:var(--s2) var(--s3)}
+ .project-party{font-size:var(--body-small);gap:var(--s3)}
+ .contact-record{padding:var(--s4) 0;gap:var(--s3) var(--s4)}
+ .project-toolbar{min-height:64px}.project-filters label{width:150px}
+}
+@media(max-width:640px){
+ .page-heading{gap:var(--s3);margin-bottom:var(--s6)}
+ .page-heading h1{font-size:26px;letter-spacing:-.7px}
+ .list-toolbar{gap:var(--s2);flex-wrap:wrap}
+ .list-toolbar .tabs{min-width:0;gap:var(--s4);max-width:100%;overflow-x:auto}
+ .list-toolbar .tabs button{font-size:var(--caption);flex-shrink:0}
+ .list-toolbar .tabs button.active:after{bottom:0}
+ .project-toolbar{flex-wrap:wrap;gap:var(--s3)}
+ .project-filters{min-width:0;flex:1}.project-filters label{max-width:100%;width:150px}
+ .meeting-row{display:grid;grid-template-columns:56px minmax(0,1fr);gap:var(--s2) var(--s3);padding:var(--s4) 0}
+ .meeting-time{min-width:0;align-self:start}
+ .meeting-actions{grid-column:2;width:auto;justify-content:flex-end}
+ .meeting-actions .icon-btn,.task-row>.icon-btn{width:32px;height:32px}
+ .meeting-title{align-items:flex-start}.meeting-title h3{line-height:1.6}
+ .task-entry .task-day-picker input{width:100%}
+ .task-create-form .task-entry>input{flex:1;flex-basis:0;font-size:16px}
+ .task-create-form .task-entry>.btn{flex:none}
+ .task-day-group .task-row{gap:var(--s2);padding:var(--s3) 0}
+ .modal-head,.modal-fields,.modal-footer{padding-left:20px;padding-right:20px}
+ .modal-fields .form-grid{gap:var(--s3)}
+}
