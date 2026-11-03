@@ -133,3 +133,8 @@ input,select,textarea{width:100%;min-width:0;margin:0;border:1px solid #ccc;bord
 /* Meeting registration shares the client registration dialog. */
 .meeting-modal .meeting-dates{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s4)}
 @media(max-width:640px){.meeting-modal .meeting-dates>label:first-child{grid-column:auto}}
+
+/* Dashboard agenda shares the existing section headings and quiet list rows. */
+.dashboard{grid-template-areas:"pipeline outcome" "today-meetings upcoming-meetings" "recent followups"}.dashboard-today-meetings{grid-area:today-meetings}.dashboard-upcoming-meetings{grid-area:upcoming-meetings}
+.dashboard-meeting{width:100%;display:flex;align-items:flex-start;gap:var(--s4);padding:var(--s4) 0;border-bottom:1px solid var(--line);text-align:left;line-height:1.6}.dashboard-meeting-time{display:grid;gap:var(--s1);min-width:48px;flex-shrink:0;font-variant-numeric:tabular-nums}.dashboard-meeting-time small{font-size:var(--caption);color:var(--muted)}.dashboard-meeting-time b{font-size:var(--body-small);font-weight:500}.dashboard-meeting-copy{display:grid;gap:var(--s1);flex:1;min-width:0;overflow-wrap:anywhere}.dashboard-meeting-copy>b{font-size:var(--body-small);font-weight:600}.dashboard-meeting-copy>span{font-size:var(--caption);color:var(--muted)}.dashboard-meeting>svg{align-self:center;color:var(--muted);flex-shrink:0}@media(hover:hover){.dashboard-meeting:hover{background:#fafafa}}
+@media(max-width:640px){.dashboard{grid-template-areas:"pipeline" "outcome" "today-meetings" "upcoming-meetings" "recent" "followups"}.dashboard-meeting{gap:var(--s3)}}
