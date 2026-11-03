@@ -4,7 +4,7 @@ import {recordsRequest,STORAGE_KEY,SEED_KEY,NASMEDIA_ADDITION_KEY,onRecordsChang
 const company={id:'company',kind:'customer',name:'테스트 대행사',contacts:[{id:'person',contact:'김담당',position:'팀장'}]};
 const meeting={id:'meeting',kind:'meeting',name:'캠페인 협의',date:'2026-11-05',time:'14:00',endTime:'15:00',customer:'company',contactId:'person',location:'회의실',status:'예정'};
 assert.equal(meetingValidation(meeting,[company]),'');
-for(const patch of [{date:'2026-02-30'},{time:'24:00'},{endTime:'13:00'},{contactId:'missing'},{customer:'missing'},{status:'오류'}])assert.notEqual(meetingValidation({...meeting,...patch},[company]),'');
+for(const patch of [{date:'2026-02-30'},{time:'24:00'},{contactId:'missing'},{customer:'missing'},{status:'오류'}])assert.notEqual(meetingValidation({...meeting,...patch},[company]),'');
 assert.equal(meetingValidation({...meeting,customer:'',contactId:'',endTime:''},[]),'');
 assert.equal(meetingParties(meeting,[company]),'테스트 대행사 · 김담당');
 const rows=[company,meeting,{...meeting,id:'early',time:'09:00'},{...meeting,id:'old',date:'2026-11-01'},{...meeting,id:'done',status:'완료'},{...meeting,id:'cancel',status:'취소'}];
@@ -23,7 +23,8 @@ assert.equal((await recordsRequest('/api/records?id=company',{method:'DELETE'}))
 assert.equal((await save([{...company,contacts:[{id:'different',contact:'다른 담당자'}]}])).status,400);
 assert.equal((await save([{...meeting,date:'2026-11-06',status:'완료'}])).status,200);
 assert.equal(JSON.parse(memory.get(STORAGE_KEY)!).find((r:any)=>r.id==='meeting').status,'완료');
-assert.equal((await save([{...meeting,endTime:'13:00'}])).status,400);
+assert.equal((await save([{...meeting,time:'16:00',note:'기존 메모'}])).status,200);
+assert.equal(JSON.parse(memory.get(STORAGE_KEY)!).find((r:any)=>r.id==='meeting').endTime,'15:00');
 assert.equal((await recordsRequest('/api/records?id=meeting',{method:'DELETE'})).status,200);
 assert.equal((await recordsRequest('/api/records?id=company',{method:'DELETE'})).status,200);
 console.log('PASS: meeting save/reload/edit/delete, company/contact references, valid dates/times, search, chronological groups, history and sync notifications');
