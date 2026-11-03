@@ -6,7 +6,7 @@ export function taskDay(task:TaskRecord){return validTaskDay(task.taskDate||'')?
 export function groupTasks(rows:TaskRecord[],query=''){
  const groups=new Map<string,TaskRecord[]>();
  for(const task of rows.filter(r=>r.kind==='task'&&(r.name||'').toLowerCase().includes(query.trim().toLowerCase()))){const day=taskDay(task);groups.set(day,[...(groups.get(day)||[]),task])}
- return [...groups].sort(([a],[b])=>b.localeCompare(a)).map(([day,tasks])=>({day,tasks:tasks.sort((a,b)=>{const ar=Number.isSafeInteger(a.sortOrder),br=Number.isSafeInteger(b.sortOrder);return ar&&br?a.sortOrder!-b.sortOrder!:(ar?1:br?-1:0)||(b.createdAt||'').localeCompare(a.createdAt||'')})}));
+ return [...groups].sort(([a],[b])=>b.localeCompare(a)).map(([day,tasks])=>({day,tasks:tasks.sort((a,b)=>{const ar=Number.isSafeInteger(a.sortOrder),br=Number.isSafeInteger(b.sortOrder);return Number(!!a.done)-Number(!!b.done)||(ar&&br?a.sortOrder!-b.sortOrder!:(ar?1:br?-1:0))||(b.createdAt||'').localeCompare(a.createdAt||'')})}));
 }
 export function taskValidation(task:TaskRecord){
  if(typeof task.done!=='boolean')return '완료 상태를 확인해 주세요.';
@@ -26,10 +26,17 @@ export function withTaskMetadata(old:TaskRecord|undefined,value:TaskRecord,now:s
 
 export function reorderTasks(rows:TaskRecord[],sourceId:string,targetId:string,after=false):TaskRecord[]{
  const source=rows.find(row=>row.kind==='task'&&row.id===sourceId),target=rows.find(row=>row.kind==='task'&&row.id===targetId);
- if(!source||!target||sourceId===targetId||taskDay(source)!==taskDay(target))return [];
+ if(!source||!target||sourceId===targetId||taskDay(source)!==taskDay(target)||!!source.done!==!!target.done)return [];
  const tasks=groupTasks(rows).find(group=>group.day===taskDay(source))!.tasks;
  const next=tasks.filter(task=>task.id!==sourceId),targetIndex=next.findIndex(task=>task.id===targetId);
  next.splice(targetIndex+(after?1:0),0,source);
  if(next.every((task,index)=>task.id===tasks[index].id))return [];
  return next.map((task,index)=>({...task,sortOrder:index})).filter(task=>task.sortOrder!==rows.find(row=>row.id===task.id)?.sortOrder);
+}
+
+export function setTaskCompletion(rows:TaskRecord[],id:string,done:boolean):TaskRecord[]{
+ const task=rows.find(row=>row.kind==='task'&&row.id===id);if(!task)return [];
+ if(!done)return [{...task,done:false}];
+ const tasks=groupTasks(rows).find(group=>group.day===taskDay(task))!.tasks;
+ return [...tasks.filter(row=>row.id!==id),{...task,done:true}].map((row,index)=>({...row,sortOrder:index})).filter(row=>row.id===id||row.sortOrder!==rows.find(old=>old.id===row.id)?.sortOrder);
 }
