@@ -1,3 +1,4 @@
+import {meetingValidation} from './meetings.ts';
 import {taskValidation,withTaskMetadata} from './tasks.ts';
 import {withProjectTimeline} from './project-timeline.ts';
 import {projectCompanyIds,projectRoles,companyContacts} from './projects.ts';
@@ -67,12 +68,14 @@ export async function recordsRequest(path:string,options:RequestInit={}):Promise
     const all=new Map(rows.map(r=>[r.id,r]));
     const ids=new Set<string>();
     for(const r of items){
-     if(!r||typeof r.id!=='string'||!r.id||r.id.length>100||!['customer','deal','log','task'].includes(r.kind)||ids.has(r.id))throw Error('입력 형식을 확인해 주세요.');
+     if(!r||typeof r.id!=='string'||!r.id||r.id.length>100||!['customer','deal','log','task','meeting'].includes(r.kind)||ids.has(r.id))throw Error('입력 형식을 확인해 주세요.');
      ids.add(r.id);const old=all.get(r.id);if(old&&old.kind!==r.kind)throw Error('기록 유형은 바꿀 수 없습니다.');all.set(r.id,r);
     }
     for(const r of items){
      if(!(r.kind==='log'?r.note:r.name)?.trim())throw Error('이름 또는 연락 내용을 입력해 주세요.');
-     if(r.kind==='task'){
+     if(r.kind==='meeting'){
+      const error=meetingValidation(r,[...all.values()]);if(error)throw Error(error);
+     }else if(r.kind==='task'){
       const error=taskValidation(r);if(error)throw Error(error);
      }else if(r.kind==='customer'){
       if(r.contacts&&(!Array.isArray(r.contacts)||!r.contacts.length||r.contacts.length>100))throw Error('담당자 정보를 확인해 주세요.');
@@ -97,6 +100,7 @@ export async function recordsRequest(path:string,options:RequestInit={}):Promise
     }
     for(const r of all.values())if(r.kind==='log'&&r.contactId){const company=all.get(r.customer);const people=company?.contacts?.length?company.contacts:[{id:company?.id+'-contact'}];if(!people.some((p:any)=>p.id===r.contactId))throw Error('연락 이력이 있는 담당자는 제거할 수 없습니다.');}
     for(const r of all.values()){
+     if(r.kind==='meeting'){const error=meetingValidation(r,[...all.values()]);if(error)throw Error(error);}
      if(r.kind==='deal')for(const role of projectRoles)if(r[role.contactKey]&&!companyContacts(all.get(r[role.key])).some((p:any)=>p.id===r[role.contactKey]))throw Error('프로젝트에 연결된 담당자는 제거할 수 없습니다.');
      if(r.kind==='log'&&r.deal){const deal=all.get(r.deal);if(!deal||!projectCompanyIds(deal).includes(r.customer))throw Error('연락 이력에 연결된 프로젝트 거래처를 확인해 주세요.');}
     }
@@ -108,7 +112,7 @@ export async function recordsRequest(path:string,options:RequestInit={}):Promise
    }
    if(options.method==='DELETE'){
     const id=new URL(path,'https://local.invalid').searchParams.get('id');
-    if(rows.some(r=>(r.kind==='log'||r.kind==='deal')&&(r.customer===id||r.agency===id||r.rep===id||r.deal===id)))throw Error('연결된 연락 이력을 먼저 정리해 주세요.');
+    if(rows.some(r=>(r.kind==='log'||r.kind==='deal'||r.kind==='meeting')&&(r.customer===id||r.agency===id||r.rep===id||r.deal===id)))throw Error('연결된 연락 이력을 먼저 정리해 주세요.');
     localStorage.setItem(STORAGE_KEY,JSON.stringify(rows.filter(r=>r.id!==id)));
     if(id)notify({upserts:[],deletes:[id]});
     return Response.json({ok:true});
