@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {menuItems,moveMenu,normalizeMenuOrder} from '../src/navigation-order.ts';
+const initial=menuItems.map(item=>item.id);
+assert.deepEqual(normalizeMenuOrder(null),initial);
+assert.deepEqual(normalizeMenuOrder(['resources','dashboard','resources','unknown']),['resources','customers','deals','tasks','meetings']);
+assert.deepEqual(moveMenu(initial,'resources','customers'),['resources','customers','deals','tasks','meetings']);
+assert.deepEqual(moveMenu(initial,'customers','resources',true),['deals','tasks','meetings','resources','customers']);
+assert.deepEqual(moveMenu(initial,'tasks','deals'),['customers','tasks','deals','meetings','resources']);
+assert.deepEqual(moveMenu(initial,'dashboard','resources'),initial);
+assert.deepEqual(moveMenu(initial,'tasks','dashboard'),initial);
+const moved=moveMenu(initial,'resources','customers');
+assert.deepEqual(normalizeMenuOrder(JSON.parse(JSON.stringify(moved))),moved);
+assert.equal(new Set(moved).size,initial.length);
+assert.equal(menuItems.find(item=>item.id==='tasks')?.label,'업무 관리');
+console.log('PASS: fixed dashboard, menu moves in both directions, saved order normalization, duplicates/invalid entries and business label');

@@ -225,3 +225,7 @@ input,select,textarea{width:100%;min-width:0;margin:0;border:1px solid #ccc;bord
  .modal-head,.modal-fields,.modal-footer{padding-left:20px;padding-right:20px}
  .modal-fields .form-grid{gap:var(--s3)}
 }
+
+/* Reorderable navigation keeps the dashboard fixed and the existing text-only tone. */
+.nav-reorder{position:relative;cursor:grab;touch-action:none;user-select:none}.nav-reorder:active,.navigation-dragging .nav-reorder{cursor:grabbing}.nav-reorder.nav-dragging{opacity:.4}.nav-drop-before:before,.nav-drop-after:after{content:'';position:absolute;top:8px;bottom:8px;width:2px;background:var(--ink);pointer-events:none}.nav-drop-before:before{left:-12px}.nav-drop-after:after{right:-12px}
+@media(max-width:640px){.nav-drop-before:before{left:-8px}.nav-drop-after:after{right:-8px}}
