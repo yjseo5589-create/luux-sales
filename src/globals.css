@@ -240,3 +240,45 @@ input,select,textarea{width:100%;min-width:0;margin:0;border:1px solid #ccc;bord
  .task-entry .task-day-picker input{display:block;appearance:none;-webkit-appearance:none;box-sizing:border-box;min-width:0;width:100%;max-width:100%;margin:0;text-align:left;line-height:calc(var(--control) - 2px)}
  .task-entry .task-day-picker input::-webkit-date-and-time-value{text-align:left;margin:0;line-height:calc(var(--control) - 2px)}
 }
+
+/* Project detail: the approved compact hierarchy, scoped to this drawer. */
+.project-drawer{width:560px;padding:28px}
+.project-drawer .detail-header{display:block;padding-bottom:24px}
+.project-detail-top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}
+.project-drawer .project-detail-top>.muted{margin:0;font-size:12px;line-height:24px}
+.project-drawer .detail-header-actions{gap:12px}
+.project-drawer .detail-header h2{font-size:22px;font-weight:600;line-height:1.5;letter-spacing:-.5px;word-break:keep-all}
+.project-drawer .project-parties-info{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;padding:20px 0 24px;border-bottom:1px solid var(--line)}
+.project-drawer .project-parties-info>div{display:block;min-width:0;min-height:0}
+.project-drawer .project-parties-info dt{font-size:12px;margin-bottom:6px}
+.project-drawer .project-parties-info dd{font-size:14px;line-height:1.6;white-space:normal;word-break:keep-all}
+.project-drawer .project-party-contact{font-size:12px;line-height:1.6;margin-top:4px}
+.project-drawer .project-detail-section{margin-top:0;padding:24px 0;border-top:0;border-bottom:1px solid var(--line)}
+.project-drawer .project-detail-section:last-child{border-bottom:0;padding-bottom:0}
+.project-drawer .project-detail-section h3{font-size:14px;line-height:24px;margin-bottom:16px}
+.project-drawer .project-detail-section>.row{min-height:32px;margin-bottom:16px}
+.project-drawer .project-detail-section>.row h3{margin:0}
+.project-drawer .project-detail-section h3>.muted{font-size:12px;font-weight:400;margin-left:4px}
+.project-drawer .project-campaign-info{gap:16px}
+.project-drawer .project-campaign-info>.project-memo{display:block}
+.project-drawer .project-campaign-info dd{font-size:14px;line-height:1.85;word-break:keep-all}
+.project-drawer .project-log-card{padding:18px 0}
+.project-drawer .project-log-card:first-of-type{padding-top:0}
+.project-drawer .project-log-card:last-of-type{padding-bottom:0}
+.project-log-meta>div{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.project-log-meta time{color:#555;font-variant-numeric:tabular-nums}
+.project-log-channel{padding-left:10px;border-left:1px solid var(--line);line-height:14px}
+.project-drawer .project-log-card .log-body>.note{font-size:14px;line-height:1.8;margin:7px 0;word-break:keep-all}
+.project-drawer .project-log-person{font-size:12px;line-height:1.6;color:var(--muted);margin:7px 0 0}
+.project-drawer .project-log-card .asset{margin-top:8px}
+@media(max-width:640px){
+ .project-drawer{width:100%;padding:20px}
+ .project-detail-top{margin-bottom:12px}
+ .project-drawer .detail-header{padding-bottom:20px}
+ .project-drawer .detail-header h2{font-size:20px}
+ .project-drawer .project-parties-info{padding:18px 0 20px;gap:16px}
+ .project-drawer .project-parties-info dd{font-size:13px}
+ .project-drawer .project-detail-section{padding:20px 0}
+ .project-drawer .project-detail-section>.row{margin-bottom:12px}
+ .project-drawer .project-log-card .icon-btn{width:32px;height:32px}
+}
