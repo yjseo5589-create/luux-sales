@@ -35,13 +35,13 @@ export default function Navigation({page,onNavigate}:Props){
   if(current.active){ignoreClickUntil.current=Date.now()+300;if(!cancel&&current.target)persist(moveMenu(order,current.id,current.target,current.after),current.id)}
  }
  return <nav ref={nav} aria-label="주 메뉴" className={dragging?'navigation-dragging':''}>
- <button className={page==='dashboard'?'nav active':'nav'} aria-current={page==='dashboard'?'page':undefined} onClick={()=>onNavigate('dashboard')}><span className="nav-label">대시보드</span></button>
+ <button className={page==='dashboard'?'nav active':'nav'} aria-current={page==='dashboard'?'page':undefined} onClick={()=>onNavigate('dashboard')}>대시보드</button>
  {order.map(id=>{const item=menuItems.find(item=>item.id===id)!;return <button key={id} data-nav-id={id} className={'nav nav-reorder'+(page===id?' active':'')+(dragging===id?' nav-dragging':'')+(drop?.id===id?(drop.after?' nav-drop-after':' nav-drop-before'):'')} aria-current={page===id?'page':undefined} aria-describedby="navigation-reorder-help" title="드래그하여 순서 변경" onPointerDown={event=>start(event,id)} onPointerMove={move} onPointerUp={event=>end(event)} onPointerCancel={event=>end(event,true)} onLostPointerCapture={()=>{if(drag.current){drag.current=null;setDragging('');setDrop(null)}}} onClick={event=>{if(Date.now()<ignoreClickUntil.current){event.preventDefault();return}onNavigate(id)}} onKeyDown={event=>{
   if(event.key==='Escape'&&drag.current){drag.current=null;setDragging('');setDrop(null);ignoreClickUntil.current=Date.now()+300;return}
   if(!event.altKey||!['ArrowLeft','ArrowRight'].includes(event.key))return;
   event.preventDefault();const index=order.indexOf(id),delta=event.key==='ArrowLeft'?-1:1,target=order[index+delta];
   if(target)persist(moveMenu(order,id,target,delta>0),id);
- }}><span className="nav-label">{item.label}</span></button>})}
+ }}>{item.label}</button>})}
  <span className="sr-only" id="navigation-reorder-help">메뉴를 드래그해 순서를 바꿀 수 있습니다. 키보드는 Alt와 좌우 방향키를 함께 누르세요. 대시보드는 고정입니다.</span>
  <span className="sr-only" role="status">{announcement}</span>
  </nav>;
