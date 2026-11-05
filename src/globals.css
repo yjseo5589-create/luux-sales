@@ -234,9 +234,9 @@ input,select,textarea{width:100%;min-width:0;margin:0;border:1px solid #ccc;bord
 .task-day-group .task-row{position:relative}.task-row .task-drag-handle{cursor:grab;touch-action:none;user-select:none;color:#999;flex-shrink:0}.task-row .task-drag-handle:active{cursor:grabbing}.task-dragging{opacity:.4}.task-drop-before:before,.task-drop-after:after{content:'';position:absolute;left:0;right:0;height:2px;background:var(--ink);pointer-events:none}.task-drop-before:before{top:0}.task-drop-after:after{bottom:0}
 @media(max-width:640px){.task-day-group .task-row{gap:var(--s1)}.task-row .task-checkbox{width:32px;min-width:32px}}
 
-/* Center the mobile date selector above the task entry row. */
+/* Match the mobile task date field to the full-width entry row. */
 @media(max-width:640px){
  .task-entry .task-day-picker{min-width:0;max-width:100%;contain:inline-size}
- .task-entry .task-day-picker input{display:block;appearance:none;-webkit-appearance:none;box-sizing:border-box;min-width:0;width:180px;max-width:100%;margin:0 auto;text-align:center}
- .task-entry .task-day-picker input::-webkit-date-and-time-value{text-align:center}
+ .task-entry .task-day-picker input{display:block;appearance:none;-webkit-appearance:none;box-sizing:border-box;min-width:0;width:100%;max-width:100%;margin:0;text-align:left}
+ .task-entry .task-day-picker input::-webkit-date-and-time-value{text-align:left}
 }
