@@ -237,6 +237,6 @@ input,select,textarea{width:100%;min-width:0;margin:0;border:1px solid #ccc;bord
 /* Match the mobile task date field to the full-width entry row. */
 @media(max-width:640px){
  .task-entry .task-day-picker{min-width:0;max-width:100%;contain:inline-size}
- .task-entry .task-day-picker input{display:block;appearance:none;-webkit-appearance:none;box-sizing:border-box;min-width:0;width:100%;max-width:100%;margin:0;text-align:left}
- .task-entry .task-day-picker input::-webkit-date-and-time-value{text-align:left}
+ .task-entry .task-day-picker input{display:block;appearance:none;-webkit-appearance:none;box-sizing:border-box;min-width:0;width:100%;max-width:100%;margin:0;text-align:left;line-height:calc(var(--control) - 2px)}
+ .task-entry .task-day-picker input::-webkit-date-and-time-value{text-align:left;margin:0;line-height:calc(var(--control) - 2px)}
 }
