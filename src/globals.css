@@ -337,3 +337,12 @@ input,select,textarea{width:100%;min-width:0;margin:0;border:1px solid #ccc;bord
  .dashboard-metric:first-child{padding-left:0}
  .dashboard-metric strong{font-size:26px;margin-top:8px}
 }
+
+/* iOS date/time controls must not expand the mobile meeting form's grid. */
+@media(max-width:640px){
+ .meeting-modal .meeting-dates{grid-template-columns:minmax(0,1fr);gap:16px;min-width:0}
+ .meeting-modal .meeting-dates>label{grid-column:1;min-width:0;max-width:100%;contain:inline-size}
+ .meeting-modal .meeting-dates input{display:block;appearance:none;-webkit-appearance:none;box-sizing:border-box;min-width:0;width:100%;max-width:100%;height:44px;min-height:44px;max-height:44px;padding:0 12px;text-align:left;line-height:42px}
+ .meeting-modal .meeting-dates input::-webkit-date-and-time-value{min-width:0;margin:0;text-align:left;line-height:42px}
+ .meeting-modal .meeting-dates input::-webkit-datetime-edit{padding:0}
+}
