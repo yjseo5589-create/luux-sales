@@ -285,3 +285,12 @@ input,select,textarea{width:100%;min-width:0;margin:0;border:1px solid #ccc;bord
 
 /* Contact export remains a quiet per-person action in both detail and editor. */
 .contact-vcf-action{margin-top:var(--s3);padding-left:0}
+
+/* Compact mobile project controls, scoped away from forms and other pages. */
+@media(max-width:640px){
+ .project-page-heading .btn{height:36px;min-height:36px;min-width:0;padding:0 12px;gap:6px;font-size:12px}
+ .project-page-heading .btn>svg{width:14px;height:14px}
+ .project-toolbar{--control:36px;min-height:56px;padding:10px 0}
+ .project-filters label{width:132px}
+ .project-filters select{font-size:13px;padding:6px 10px;padding-right:36px}
+}
