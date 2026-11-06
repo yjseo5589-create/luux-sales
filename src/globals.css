@@ -282,3 +282,6 @@ input,select,textarea{width:100%;min-width:0;margin:0;border:1px solid #ccc;bord
  .project-drawer .project-detail-section>.row{margin-bottom:12px}
  .project-drawer .project-log-card .icon-btn{width:32px;height:32px}
 }
+
+/* Contact export remains a quiet per-person action in both detail and editor. */
+.contact-vcf-action{margin-top:var(--s3);padding-left:0}

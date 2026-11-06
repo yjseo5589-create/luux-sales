@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {createVCard,contactDisplayName} from '../src/vcard.ts';
+const person={contact:'김우빈',position:'선임',department:'전략&컨설팅1팀',phone:'010-1234-5678',officePhone:'02-123-4567',email:'example@example.com'};
+const card=createVCard('나스미디어',person),text=card.content.replace(/\r\n /g,'');
+assert.equal(card.name,'나스미디어 김우빈 선임');assert.equal(card.filename,'나스미디어 김우빈 선임.vcf');
+assert.ok(text.includes('N:;나스미디어 김우빈 선임;;;\r\nFN:나스미디어 김우빈 선임\r\n'));
+for(const field of ['ORG:나스미디어;전략&컨설팅1팀','TITLE:선임','TEL;TYPE=CELL:010-1234-5678','TEL;TYPE=WORK,VOICE:02-123-4567','EMAIL;TYPE=INTERNET,WORK:example@example.com'])assert.ok(text.includes(field+'\r\n'));
+assert.ok(text.startsWith('BEGIN:VCARD\r\nVERSION:3.0\r\n'));assert.ok(text.endsWith('END:VCARD\r\n'));
+assert.equal(contactDisplayName(' 회사 ',{contact:' 이름 ',position:''}),'회사 이름');
+const empty=createVCard('',{});assert.equal(empty.filename,'연락처.vcf');assert.ok(!empty.content.includes('TEL;'));
+const escaped=createVCard('회사;지점, A\\B',{contact:'이름\r\nTEL:malicious',position:'부장/팀장'});
+assert.ok(escaped.content.includes('회사\\;지점\\, A\\\\B'));assert.ok(!escaped.content.includes('\r\nTEL:malicious'));assert.ok(!escaped.filename.includes('/'));
+const long=createVCard('가'.repeat(90),{contact:'나'.repeat(40)});
+for(const line of long.content.split('\r\n'))assert.ok(Buffer.byteLength(line,'utf8')<=75);
+assert.equal(long.content.replace(/\r\n /g,'').includes(`FN:${'가'.repeat(90)} ${'나'.repeat(40)}\r\n`),true);
+assert.ok(!long.content.includes('\ufffd'));
+console.log('PASS: vCard names, contact fields, optional values, escaping, safe filenames and lossless UTF-8 line folding');
