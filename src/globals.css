@@ -286,11 +286,24 @@ input,select,textarea{width:100%;min-width:0;margin:0;border:1px solid #ccc;bord
 /* Contact export remains a quiet per-person action in both detail and editor. */
 .contact-vcf-action{margin-top:var(--s3);padding-left:0}
 
-/* Compact mobile project controls, scoped away from forms and other pages. */
+/* Shared mobile actions: compact lists, quiet utilities, consistent form actions. */
 @media(max-width:640px){
- .project-page-heading .btn{height:36px;min-height:36px;min-width:0;padding:0 12px;gap:6px;font-size:12px}
- .project-page-heading .btn>svg{width:14px;height:14px}
- .project-toolbar{--control:36px;min-height:56px;padding:10px 0}
+ :root{--action-height:36px;--action-icon:14px;--utility:32px}
+ .btn,.page-heading .btn{height:var(--action-height);min-height:var(--action-height);min-width:72px;padding:0 12px;gap:6px;font-size:12px}
+ .btn>svg{width:var(--action-icon);height:var(--action-icon)}
+ .compact-action,.text-link{min-height:32px;font-size:12px;gap:4px}
+ .icon-btn,.meeting-actions .icon-btn,.task-row>.icon-btn{width:32px;height:32px}
+ .icon-btn>svg{width:14px;height:14px}
+ .modal-footer .btn,.task-edit-actions .btn{height:40px;min-height:40px;min-width:80px}
+ .register-menu button{height:36px;padding:0 12px;font-size:12px;gap:6px}
+ .register-menu button>svg{width:14px;height:14px}
+ .list-toolbar,.project-toolbar{min-height:56px;padding:10px 0}
+ .list-toolbar .tabs button{min-height:36px;padding:8px 0;font-size:12px}
+ .list-toolbar .tabs button.active:after{bottom:0}
+ .project-toolbar{--control:36px}
  .project-filters label{width:132px}
  .project-filters select{font-size:13px;padding:6px 10px;padding-right:36px}
+ .task-entry>.btn{align-self:center}
+ .task-edit-actions{flex-wrap:wrap}
+ .task-day-group .task-row>.icon-btn{margin:0}
 }
