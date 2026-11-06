@@ -307,3 +307,33 @@ input,select,textarea{width:100%;min-width:0;margin:0;border:1px solid #ccc;bord
  .task-edit-actions{flex-wrap:wrap}
  .task-day-group .task-row>.icon-btn{margin:0}
 }
+
+/* Mobile page rhythm follows the compact action scale without shrinking form dialogs. */
+@media(max-width:640px){
+ .sidebar{padding-top:20px}
+ .searchbox{--control:36px}
+ .searchbox input{min-height:36px;padding:6px 0}
+ .searchbox>svg{width:15px;height:15px}
+ .content{padding-top:20px}
+ .page-heading{min-height:36px;margin-bottom:20px}
+ .page-heading h1{font-size:22px;line-height:1.35;letter-spacing:-.5px}
+ .task-create-form{--control:36px;margin-bottom:20px}
+ .task-create-form .task-entry{gap:8px}
+ .task-create-form .task-entry>input{height:36px}
+ .task-status{min-height:28px;margin-bottom:8px}
+ .task-day-group{margin-top:12px}
+ .task-day-group>summary{min-height:44px}
+ .task-day-group .task-row{min-height:56px;padding:8px 0}
+ .company-accordion>summary{min-height:56px;padding:12px 0}
+ .contact-record{padding:12px 0}
+ .project-row{padding:12px 0;row-gap:6px}
+ .meeting-day{margin-top:20px}
+ .meeting-row{min-height:80px;padding:12px 0}
+ .resource-row{min-height:56px;padding:16px 0;font-size:13px}
+ .resource-title b{font-size:13px}
+ .activity-row{padding:16px 0}
+ .dashboard{gap:20px}
+ .dashboard-metric{padding:12px 10px}
+ .dashboard-metric:first-child{padding-left:0}
+ .dashboard-metric strong{font-size:26px;margin-top:8px}
+}
