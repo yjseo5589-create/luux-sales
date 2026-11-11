@@ -34,6 +34,17 @@ export function reorderTasks(rows:TaskRecord[],sourceId:string,targetId:string,a
  return next.map((task,index)=>({...task,sortOrder:index})).filter(task=>task.sortOrder!==rows.find(row=>row.id===task.id)?.sortOrder);
 }
 
+export function moveTaskToDay(rows:TaskRecord[],sourceId:string,day:string,targetId?:string,after=false):TaskRecord[]{
+ const source=rows.find(row=>row.kind==='task'&&row.id===sourceId);
+ if(!source||!validTaskDay(day)||taskDay(source)===day)return [];
+ const tasks=groupTasks(rows).find(group=>group.day===day)?.tasks||[];
+ const peers=tasks.filter(task=>!!task.done===!!source.done);
+ const targetIndex=peers.findIndex(task=>task.id===targetId);
+ peers.splice(targetIndex<0?peers.length:targetIndex+(after?1:0),0,{...source,taskDate:day});
+ const next=source.done?[...tasks.filter(task=>!task.done),...peers]:[...peers,...tasks.filter(task=>task.done)];
+ return next.map((task,index)=>({...task,sortOrder:index})).filter(task=>task.id===sourceId||task.sortOrder!==rows.find(row=>row.id===task.id)?.sortOrder);
+}
+
 export function setTaskCompletion(rows:TaskRecord[],id:string,done:boolean):TaskRecord[]{
  const task=rows.find(row=>row.kind==='task'&&row.id===id);if(!task)return [];
  if(!done)return [{...task,done:false}];

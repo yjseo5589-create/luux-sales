@@ -360,3 +360,7 @@ input,select,textarea{width:100%;min-width:0;margin:0;border:1px solid #ccc;bord
  .task-inline-form .task-edit-actions{grid-column:1;grid-row:auto}
  .task-inline-form .task-edit-actions .btn{height:36px;min-height:36px;min-width:64px}
 }
+
+/* Dates are drop targets as well as individual task rows. */
+.task-day-drop{background:var(--soft);outline:1px solid #999;outline-offset:-1px}
+.task-drop-placeholder{padding:16px;font-size:var(--caption);color:var(--muted);text-align:center}

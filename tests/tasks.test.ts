@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {groupTasks,taskDay,taskValidation,withTaskMetadata,reorderTasks,setTaskCompletion} from '../src/tasks.ts';
+import {groupTasks,taskDay,taskValidation,withTaskMetadata,reorderTasks,setTaskCompletion,moveTaskToDay} from '../src/tasks.ts';
 import {recordsRequest,STORAGE_KEY,SEED_KEY,NASMEDIA_ADDITION_KEY} from '../src/records.ts';
 const base={id:'task',kind:'task',name:'제안서 검토',done:false,start:'2026-10-30',due:'2026-11-02',priority:'높음'};
 assert.equal(taskValidation(base),'');
@@ -95,3 +95,31 @@ assert.equal(completedRows.find((r:any)=>r.id==='b').completedAt,'');
 assert.equal(completedRows.find((r:any)=>r.id==='c').taskDate,'2026-11-03');
 assert.deepEqual(setTaskCompletion(completedRows,'unknown',true),[]);
 console.log('PASS: each completion appends to the bottom, unfinished manual order retained, reload stable, uncheck returns to unfinished group and cross-status drag blocked');
+
+// Moving dates keeps the same record and completion history, including across status groups.
+const moving=[
+ {id:'moving',kind:'task',name:'이동 업무',done:false,taskDate:'2026-11-11',createdAt:'2026-11-01T00:00:00Z'},
+ {id:'first',kind:'task',name:'대상 업무',done:false,taskDate:'2026-11-12'},
+ {id:'finished',kind:'task',name:'완료 업무',done:true,taskDate:'2026-11-12',completedAt:'2026-11-10T00:00:00Z'},
+ {id:'finished-move',kind:'task',name:'이동할 완료 업무',done:true,taskDate:'2026-11-10',completedAt:'2026-11-09T00:00:00Z'},
+];
+assert.equal((await save(moving)).status,200);
+const beforeMove=JSON.parse(memory.get(STORAGE_KEY)!);
+const updates=moveTaskToDay(beforeMove,'moving','2026-11-12','first');
+assert.equal((await save(updates)).status,200);
+let moved=JSON.parse(memory.get(STORAGE_KEY)!);
+assert.deepEqual(groupTasks(moved).find(g=>g.day==='2026-11-12')?.tasks.map(t=>t.id),['moving','first','finished']);
+assert.equal(moved.filter((t:any)=>t.id==='moving').length,1);
+assert.equal(moved.find((t:any)=>t.id==='moving').createdAt,beforeMove.find((t:any)=>t.id==='moving').createdAt);
+assert.equal((await save(moveTaskToDay(moved,'finished-move','2026-11-12','first'))).status,200);
+moved=JSON.parse(memory.get(STORAGE_KEY)!);
+assert.deepEqual(groupTasks(moved).find(g=>g.day==='2026-11-12')?.tasks.map(t=>t.id),['moving','first','finished','finished-move']);
+assert.equal(moved.find((t:any)=>t.id==='finished-move').completedAt,beforeMove.find((t:any)=>t.id==='finished-move').completedAt);
+const emptyDay=moveTaskToDay(moved,'moving','2026-11-20');
+assert.equal(emptyDay.length,1);
+assert.equal(emptyDay[0].taskDate,'2026-11-20');
+assert.deepEqual(moveTaskToDay(moving,'moving','2026-02-30'),[]);
+assert.deepEqual(moveTaskToDay(moving,'moving',''),[]);
+assert.deepEqual(moveTaskToDay(moving,'missing','2026-11-12'),[]);
+assert.deepEqual(moveTaskToDay(moving,'moving','2026-11-11'),[]);
+console.log('PASS: cross-date moves persist once, preserve timestamps and completed status, support empty dates and keep completed tasks below unfinished tasks');
