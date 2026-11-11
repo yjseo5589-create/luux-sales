@@ -346,3 +346,17 @@ input,select,textarea{width:100%;min-width:0;margin:0;border:1px solid #ccc;bord
  .meeting-modal .meeting-dates input::-webkit-date-and-time-value{min-width:0;margin:0;text-align:left;line-height:42px}
  .meeting-modal .meeting-dates input::-webkit-datetime-edit{padding:0}
 }
+
+/* Inline task edits share one control row; redundant row actions stay hidden. */
+.task-inline-form{grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:var(--s2);padding:0}
+.task-inline-form>input{width:100%;min-width:0}
+.task-inline-form .task-edit-actions{grid-column:2;grid-row:1;flex-wrap:nowrap}
+.task-inline-form .task-form-error{grid-column:1/-1;margin:0}
+.task-day-group .task-editing{align-items:flex-start}
+.task-editing>.task-checkbox,.task-editing>.task-drag-handle{align-self:flex-start;margin-top:4px}
+@media(max-width:640px){
+ .task-inline-form{grid-template-columns:minmax(0,1fr);gap:8px}
+ .task-inline-form>input{height:40px;font-size:16px}
+ .task-inline-form .task-edit-actions{grid-column:1;grid-row:auto}
+ .task-inline-form .task-edit-actions .btn{height:36px;min-height:36px;min-width:64px}
+}
