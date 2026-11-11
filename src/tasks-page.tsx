@@ -1,11 +1,11 @@
 import {useRef,useState,type PointerEvent,type ClipboardEvent} from 'react';
-import {Check,ChevronRight,Plus,Pencil,Trash2,GripVertical} from 'lucide-react';
+import {Check,ChevronRight,Plus,Pencil,Trash2,GripVertical,Undo2} from 'lucide-react';
 import {groupTasks,taskValidation,reorderTasks,moveTaskToDay,taskDay,setTaskCompletion,type TaskRecord} from './tasks';
 type Task=TaskRecord&{name:string;done:boolean};
-type Props={rows:TaskRecord[];query:string;busy:boolean;onSave:(items:TaskRecord[],message?:string)=>Promise<boolean>;onDelete:(r:TaskRecord)=>Promise<boolean>};
+type Props={onUndo?:()=>void;canUndo?:boolean;rows:TaskRecord[];query:string;busy:boolean;onSave:(items:TaskRecord[],message?:string)=>Promise<boolean>;onDelete:(r:TaskRecord)=>Promise<boolean>};
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 const dateLabel=(day:string)=>day?day.replaceAll('-','.'):'';
-export default function TasksPage({rows,query,busy,onSave,onDelete}:Props){
+export default function TasksPage({rows,query,busy,onSave,onDelete,onUndo,canUndo=false}:Props){
  const [name,setName]=useState(''),[selectedDate,setSelectedDate]=useState(today),[draft,setDraft]=useState<Task|null>(null),[error,setError]=useState(''),[dragging,setDragging]=useState(''),[drop,setDrop]=useState<{id:string;after:boolean;day:string}|null>(null),[announcement,setAnnouncement]=useState('');
  const input=useRef<HTMLInputElement>(null),submitting=useRef(false);
  function pasteTask(event:ClipboardEvent<HTMLInputElement>,update:(value:string)=>void){
@@ -14,6 +14,8 @@ export default function TasksPage({rows,query,busy,onSave,onDelete}:Props){
   event.preventDefault();
   const field=event.currentTarget,start=field.selectionStart??field.value.length,end=field.selectionEnd??start;
   const inserted=text.replace(/[\r\n]+/g,' ').slice(0,Math.max(0,field.maxLength-(field.value.length-(end-start))));
+  // Native insertion keeps the browser's text undo stack while preventing a second default paste.
+  if(document.execCommand('insertText',false,inserted))return;
   update(field.value.slice(0,start)+inserted+field.value.slice(end));
   requestAnimationFrame(()=>{if(field.isConnected&&document.activeElement===field)field.setSelectionRange(start+inserted.length,start+inserted.length)});
  }
@@ -65,7 +67,7 @@ export default function TasksPage({rows,query,busy,onSave,onDelete}:Props){
  {error&&!draft&&<p className="task-form-error" role="alert">{error}</p>}
  </form>
  <span className="sr-only" id="task-reorder-help">손잡이를 드래그해 순서를 바꾸거나 다른 날짜에 놓으세요. 새 날짜는 위에서 선택하세요. 키보드는 Alt와 위아래 방향키로 순서, Shift를 함께 누르면 날짜를 변경합니다.</span><span className="sr-only" role="status">{announcement}</span>
- <div className="task-status"><span aria-live="polite">미완료 {active.length} · 완료 {tasks.length-active.length}</span></div>
+ <div className="task-status">{onUndo&&<button type="button" className="compact-action task-undo-action" disabled={busy||!canUndo||!!draft} title="실행 취소 (⌘Z / Ctrl+Z)" onClick={onUndo}><Undo2 size={14}/>실행 취소</button>}<span aria-live="polite">미완료 {active.length} · 완료 {tasks.length-active.length}</span></div>
  {(dragging&&!groups.some(group=>group.day===selectedDate)?[{day:selectedDate,tasks:[]},...groups].sort((a,b)=>b.day.localeCompare(a.day)):groups).map(group=><details data-task-day={group.day} className={'task-day-group'+(drop?.day===group.day&&!drop.id?' task-day-drop':'')} key={group.day||'undated'} open><summary><ChevronRight size={14}/><h2>{group.day?(group.day===day?'오늘 · ':'')+dateLabel(group.day):'날짜 미지정'}</h2><span>{group.tasks.filter(t=>t.done).length}/{group.tasks.length}</span></summary><div className="task-list">{group.tasks.map(row)}{!group.tasks.length&&<p className="task-drop-placeholder">여기에 놓아 날짜 변경</p>}</div></details>)}
  {!tasks.length&&<p className="dashboard-empty">{query?'검색 결과 없음':'업무를 추가해 주세요'}</p>}
 

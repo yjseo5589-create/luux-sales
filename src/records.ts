@@ -1,5 +1,6 @@
 import {meetingValidation} from './meetings.ts';
 import {taskValidation,withTaskMetadata} from './tasks.ts';
+import {revertTaskChange} from './task-undo.ts';
 import {withProjectTimeline} from './project-timeline.ts';
 import {projectCompanyIds,projectRoles,companyContacts} from './projects.ts';
 import defaults from './default-records.json' with {type:'json'};
@@ -62,6 +63,13 @@ export async function recordsRequest(path:string,options:RequestInit={}):Promise
  const execute=async()=>{
   try{
    const rows=read();
+   if(options.method==='POST'&&path==='/api/tasks/undo'){
+    const change=JSON.parse(String(options.body));
+    const restored=revertTaskChange(rows,change,new Date().toISOString());
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(restored.rows));
+    notify({upserts:restored.upserts,deletes:restored.deletes});
+    return Response.json({ok:true});
+   }
    if(options.method==='POST'){
     const {items}=JSON.parse(String(options.body));
     if(!Array.isArray(items)||!items.length||items.length>3000)throw Error('입력 형식을 확인해 주세요.');

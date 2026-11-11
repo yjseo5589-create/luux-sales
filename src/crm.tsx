@@ -2,6 +2,7 @@ import Navigation from './navigation';
 import {downloadVCard} from './vcard';
 import MeetingsPage from './meetings-page';
 import TasksPage from './tasks-page';
+import {taskChange,type TaskChange} from './task-undo';
 import ActivityPage from './activity-page';
 import ResourcesPage from './resources-page';
 import Dashboard,{type DashboardScope} from './dashboard';
@@ -10,7 +11,7 @@ import {seoulDate,stageEvents} from './project-timeline';
 import ProjectForm from './project-form';
 import {filterHistory,historyContactName} from './history';
 import {filterProjects,projectStages,projectRoles,projectStage,projectCompanyIds,companyContacts,projectDisplayRoles,advertiserName} from './projects';
-import {recordsRequest,STORAGE_KEY} from './records';
+import {recordsRequest,readRecords,STORAGE_KEY} from './records';
 import SyncButton from './sync-button';
 import {REMOTE_EVENT} from './sync-state';
 import {useEffect,useLayoutEffect,useState,useRef} from 'react';
@@ -40,6 +41,25 @@ export default function CRM(){
  const [loadFailed,setLoadFailed]=useState(false);
  const [projectScope,setProjectScope]=useState<{kind:DashboardScope;label:string}|null>(null);
  const search=useRef<HTMLInputElement>(null);
+ const taskHistory=useRef<TaskChange[]>([]),taskMutation=useRef(false);
+ const [undoCount,setUndoCount]=useState(0);
+ function rememberTasks(before:R[],ids:string[]){taskHistory.current=[...taskHistory.current,taskChange(before,readRecords(),ids)].slice(-30);setUndoCount(taskHistory.current.length)}
+ async function saveTask(items:R[],message?:string){
+  if(busy||taskMutation.current)return false;taskMutation.current=true;
+  try{const before=readRecords();const ok=await save(items,message);if(ok)rememberTasks(before,items.map(item=>item.id));return ok}finally{taskMutation.current=false}
+ }
+ async function removeTask(task:R){
+  if(busy||taskMutation.current)return false;taskMutation.current=true;
+  try{const before=readRecords();const ok=await remove(task);if(ok)rememberTasks(before,[task.id]);return ok}finally{taskMutation.current=false}
+ }
+ async function undoTask(){
+  const change=taskHistory.current.at(-1);if(!change||busy||taskMutation.current)return;
+  taskMutation.current=true;setBusy(true);
+  try{const response=await recordsRequest('/api/tasks/undo',{method:'POST',body:JSON.stringify(change)});const result=await response.json();if(!response.ok)throw Error(result.error);taskHistory.current.pop();setUndoCount(taskHistory.current.length);await reload();setToast('실행 취소했습니다.')}
+  catch(e:any){setError(e.message)}finally{taskMutation.current=false;setBusy(false)}
+ }
+ useEffect(()=>{const key=(e:KeyboardEvent)=>{const target=e.target as HTMLElement;if(page!=='tasks'||document.querySelector('.task-inline-form')||modal||selected||project||e.defaultPrevented||e.repeat||e.shiftKey||e.altKey||!(e.metaKey||e.ctrlKey)||e.key.toLowerCase()!=='z'||target.closest('input,textarea,select,[contenteditable]:not([contenteditable="false"])'))return;if(taskHistory.current.length){e.preventDefault();void undoTask()}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key)},[page,busy,modal,selected,project]);
+
  useEffect(()=>{const change=()=>{setPage(pageFromHash());setSelected('');setProject('');setModal(null);};window.addEventListener('hashchange',change);return()=>window.removeEventListener('hashchange',change);},[]);
  useLayoutEffect(()=>{
   if(!selected&&!project&&!modal)return;
@@ -91,7 +111,7 @@ export default function CRM(){
    setScan(v=>v?.id===id?{id:existing.id,loading:false,note:known?'이미 등록된 담당자입니다':'등록된 거래처에 담당자를 추가합니다'}:v);
   }catch(e:any){setScan(v=>{if(v?.id===id){setError(e.message);return null}return v})}
  }
- async function remove(r:R){if(!confirm('이 기록을 삭제할까요? 삭제하면 되돌릴 수 없습니다.'))return false;setBusy(true);try{const res=await recordsRequest('/api/records?id='+encodeURIComponent(r.id),{method:'DELETE'});const d:any=await res.json();if(!res.ok)throw Error(d.error);setSelected('');setProject('');setModal(null);await reload();setToast('삭제했습니다.');return true}catch(e:any){setError(e.message);return false}finally{setBusy(false)}}
+ async function remove(r:R){if(!confirm(r.kind==='task'?'이 업무를 삭제할까요? 실행 취소로 복원할 수 있습니다.':'이 기록을 삭제할까요? 삭제하면 되돌릴 수 없습니다.'))return false;setBusy(true);try{const res=await recordsRequest('/api/records?id='+encodeURIComponent(r.id),{method:'DELETE'});const d:any=await res.json();if(!res.ok)throw Error(d.error);setSelected('');setProject('');setModal(null);await reload();setToast('삭제했습니다.');return true}catch(e:any){setError(e.message);return false}finally{setBusy(false)}}
  const go=(p:string)=>{setPage(p);setFilter('전체');setQ('');setSelected('');setProject('');setStageFilter('진행 중');setProjectScope(null);location.hash=p==='deals'?'projects':p==='customers'?'customers':p==='resources'?'resources':p==='tasks'?'tasks':p==='activity'?'activity':p==='meetings'?'meetings':'';};
  function changeLogCompany(companyId:string){if(!modal)return;const linked=deals.find(d=>d.id===modal.deal&&projectCompanyIds(d).includes(companyId));const role=linked?projectDisplayRoles.find(r=>linked[r.key]===companyId&&linked[r.contactKey]):undefined;const person=companyContacts(customers.find(c=>c.id===companyId)).find((p:any)=>p.id===(role&&linked?.[role.contactKey]));setModal({...modal,customer:companyId,contactId:person?.id||'',contact:person?.contact||'',deal:linked?.id||''});}
  function Empty({title,body,action}:{title:string;body:string;action?:()=>void}){return <div className="empty"><div className="empty-icon"><MessageSquare size={25}/></div><h3>{title}</h3><p>{body}</p></div>}
@@ -113,7 +133,7 @@ export default function CRM(){
  {page!=='dashboard'&&page!=='meetings'&&q.trim()&&<div className="search-note">“{q.trim()}” 검색 결과</div>}
  {page==='resources'&&<ResourcesPage query={q}/>}
  {page==='meetings'&&<MeetingsPage rows={rows} query={q} busy={busy} onSave={save} onDelete={remove}/>}
- {page==='tasks'&&<TasksPage rows={rows} query={q} busy={busy} onSave={save} onDelete={remove}/>}
+ {page==='tasks'&&<TasksPage rows={rows} query={q} busy={busy} onSave={saveTask} onDelete={removeTask} onUndo={undoTask} canUndo={undoCount>0}/>}
  {page==='activity'&&<ActivityPage rows={dashboardData(rows,today()).activities} companies={rows} query={q} onLog={r=>setModal({...r})} onBack={()=>go('dashboard')}/>}
  {page==='dashboard'&&<Dashboard rows={rows} today={today()} onProject={id=>setProject(id)} onLog={r=>setModal({...r})} onStage={stage=>{go('deals');setStageFilter(stage)}} onProjects={openDashboardProjects} onActivities={()=>go('activity')} onMeetings={()=>go('meetings')}/>}
  {page==='customers'&&<section className="card"><div className="list-toolbar"><div className="tabs inline">{['전체','광고주','대행사','렙사','기타'].map(t=><button key={t} className={filter===t?'active':''} aria-pressed={filter===t} onClick={()=>setFilter(t)}>{t}</button>)}</div><div className="list-result"><span className="muted small" aria-live="polite">{customers.filter(matches).filter(c=>filter==='전체'||c.type===filter).length}개사</span></div></div><div className="company-list">{customers.filter(matches).filter(c=>filter==='전체'||c.type===filter).map(c=><details className="company-accordion" key={c.id+':'+q} open={contactsOf(c).some(contactMatches)}><summary><span>{c.name}</span><ChevronRight size={18}/></summary><div className="company-contacts"><div className="contact-list-toolbar"><span className="muted small">{c.type} · {contactsOf(c).some(contactMatches)?`검색 ${visibleContacts(c).length}명 / 전체 ${contactsOf(c).length}명`:`담당자 ${contactsOf(c).length}명`}</span><button className="compact-action" onClick={()=>setSelected(c.id)}>상세<ArrowUpRight size={14}/></button></div><div className="contact-columns" aria-hidden="true">{contactFields.map(([key,label])=><span key={key}>{label}</span>)}</div>{visibleContacts(c).map(person=><div className="contact-record" key={person.id}>{contactFields.map(([key,label])=><div key={key}><span className="contact-mobile-label">{label}</span>{person[key]&&['phone','officePhone','email'].includes(key)?<a className="contact-value-link" href={key==='email'?`mailto:${person[key]}`:`tel:${person[key].replace(/[^+0-9]/g,'')}`}>{person[key]}</a>:<span>{person[key]||'—'}</span>}</div>)}</div>)}</div></details>)}</div>{!customers.filter(matches).filter(c=>filter==='전체'||c.type===filter).length&&<Empty title={customers.length?'검색 결과가 없습니다':'등록된 거래처 없음'} body="회사명만으로 시작하고, 담당자 정보는 나중에 추가해도 됩니다." action={!customers.length?()=>newRecord('customer'):undefined}/>}</section>}
