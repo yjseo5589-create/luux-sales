@@ -32,7 +32,7 @@ const projects=[
 ];
 const logs=[
  {id:'lo',kind:'log',deal:'overdue',customer:'agency',date:'2026-10-11',note:'14일 전'},
- {id:'lf',kind:'log',deal:'fresh',customer:'agency',date:'2026-10-12',note:'13일 전'},
+ {id:'lf',kind:'log',deal:'fresh',customer:'agency',date:'2026-10-19',note:'6일 전'},
  ...Array.from({length:6},(_,i)=>({id:'recent'+i,kind:'log',customer:'agency',date:'2026-10-25',updated:`2026-10-25T0${i}:00:00Z`,note:'최근 기록'})),
  {id:'tomorrow',kind:'log',customer:'agency',date:'2026-10-26',note:'미래 날짜'},
 ];
@@ -90,3 +90,11 @@ assert.equal(dashboardData([],'2026-11-03').todayMeetings.length,0);
 assert.equal(dashboardData([],'2026-11-03').upcomingMeetings.length,0);
 assert.equal(dashboardData([meeting('today','2026-11-04','09:00')],'2026-11-04').todayMeetings[0].id,'today');
 console.log('PASS: today/upcoming agenda sorted chronologically, excludes past/completed/canceled/invalid meetings, date boundaries and empty states');
+
+// Follow-up starts on day seven, including month boundaries; a newer contact resets it.
+const weekly=[{...base,id:'week',stage:'제안 완료'},{id:'week-log',kind:'log',deal:'week',date:'2026-10-31',note:'연락'}];
+assert.equal(dashboardData(weekly,'2026-11-06').followups.length,0);
+assert.equal(dashboardData(weekly,'2026-11-07').followups[0].days,7);
+assert.equal(dashboardData(weekly,'2026-11-08').followups[0].days,8);
+assert.equal(dashboardData([...weekly,{id:'new-contact',kind:'log',deal:'week',date:'2026-11-06',note:'최근 연락'}],'2026-11-07').followups.length,0);
+console.log('PASS: weekly follow-up threshold at six/seven/eight days, month boundary and latest-contact reset');

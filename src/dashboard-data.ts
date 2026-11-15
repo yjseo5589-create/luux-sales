@@ -11,7 +11,7 @@ export function dashboardData(rows:ProjectRecord[],today:string){
   const last=logs.find(l=>l.deal===project.id&&validDay(l.date||''));
   if(!last)return [{project,days:null as number|null,lastContact:'',reason:rows.some(r=>r.kind==='log'&&r.deal===project.id)?'연락일 확인 필요':'연락 기록 없음'}];
   const days=Math.floor((Date.parse(today+'T00:00:00Z')-Date.parse(last.date+'T00:00:00Z'))/DAY);
-  return days>=14?[{project,days,lastContact:last.date,reason:`마지막 연락 ${days}일 전`}]:[];
+  return days>=7?[{project,days,lastContact:last.date,reason:`마지막 연락 ${days}일 전`}]:[];
  }).sort((a,b)=>(b.days??-1)-(a.days??-1)||a.project.name.localeCompare(b.project.name,'ko'));
  const won=projects.filter(p=>['수주','집행 중','완료'].includes(projectStage(p)));
  const lost=projects.filter(p=>projectStage(p)==='미수주');
